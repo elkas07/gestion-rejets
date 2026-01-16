@@ -1829,42 +1829,23 @@
     </div>
 
     <script>
+        // ============================================
+        // INITIALISATION SUPABASE
+        // ============================================
+        
         // Configuration Supabase avec vos informations
         const supabaseUrl = 'https://qldfjdmpzvyhgsmepynp.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsZGZqZG1wenZ5aGdzbWVweW5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0OTU3NTEsImV4cCI6MjA4NDA3MTc1MX0.xAm9RrmzMCuxMfu4xjygPZMyiNbJqSXH9L_GNegbiBI';
         
-        // Initialisation de Supabase
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-        // Fonction pour vérifier la connexion par email
-        async function checkUserByEmail(email, password, role) {
-            try {
-                // Pour la démo, nous allons utiliser un système temporaire
-                // Dans un vrai système, vous vérifieriez dans la table 'users' de Supabase
-                console.log('Tentative de connexion avec:', { email, password, role });
-                
-                // Test avec votre email spécifique
-                if (email === 'sramadan@ecobank.com') {
-                    // Créer un utilisateur de test pour votre email
-                    return {
-                        id: 100,
-                        username: 'sramadan',
-                        fullname: 'Soumaïla Ramadan',
-                        password: password, // Note: dans un vrai système, le mot de passe serait hashé
-                        email: email,
-                        role: role,
-                        departement: 'corporate',
-                        status: 'active',
-                        permissions: ['export', 'reports', 'view_all'],
-                        created_at: '2023-01-15'
-                    };
-                }
-                
-                return null;
-            } catch (error) {
-                console.error('Erreur lors de la vérification:', error);
-                return null;
-            }
+        // Initialisation de Supabase (UNE SEULE DÉCLARATION)
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+            console.log('Supabase initialisé avec succès');
+        } catch (error) {
+            console.error('Erreur lors de l\'initialisation de Supabase:', error);
+            // En cas d'erreur, on utilise un système local
+            alert('Supabase non disponible, utilisation du mode local');
         }
 
         // ============================================
@@ -4168,8 +4149,13 @@ ${historiqueText}`);
                 const role = document.getElementById('loginRole').value;
                 const language = document.getElementById('loginLanguage').value;
                 
-                // Vérifier les informations de connexion
-                const user = await checkUserByEmail(email, password, role);
+                // Vérifier les informations de connexion dans les données locales
+                const user = usersData.find(u => 
+                    u.email === email && 
+                    u.password === password && 
+                    u.role === role &&
+                    u.status === 'active'
+                );
                 
                 if (user) {
                     currentUser = {
@@ -4492,6 +4478,9 @@ ${historiqueText}`);
             if (rejetsData.length === 0) {
                 saveAllData();
             }
+            
+            // Remplir l'email par défaut pour faciliter les tests
+            document.getElementById('loginEmail').value = 'sramadan@ecobank.com';
         });
     </script>
 </body>
