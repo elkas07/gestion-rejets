@@ -8,6 +8,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Ajout du script Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -908,8 +910,8 @@
                     </div>
                     <form id="loginForm" class="login-form">
                         <div class="form-group">
-                            <label for="loginUsername">Nom d'utilisateur</label>
-                            <input type="text" id="loginUsername" class="form-control" placeholder="Votre identifiant" required>
+                            <label for="loginEmail">Email</label>
+                            <input type="email" id="loginEmail" class="form-control" placeholder="Votre email" required>
                         </div>
                         <div class="form-group">
                             <label for="loginPassword">Mot de passe</label>
@@ -1827,24 +1829,25 @@
     </div>
 
     <script>
-	// Remplacer les données locales par Supabase
-const supabaseUrl = 'https://qldfjdmpzvyhgsmepynp.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsZGZqZG1wenZ5aGdzbWVweW5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0OTU3NTEsImV4cCI6MjA4NDA3MTc1MX0.xAm9RrmzMCuxMfu4xjygPZMyiNbJqSXH9L_GNegbiBI';
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        // ============================================
+        // INITIALISATION SUPABASE
+        // ============================================
+        
+        // Configuration Supabase avec vos informations
+        const supabaseUrl = 'https://qldfjdmpzvyhgsmepynp.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsZGZqZG1wenZ5aGdzbWVweW5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0OTU3NTEsImV4cCI6MjA4NDA3MTc1MX0.xAm9RrmzMCuxMfu4xjygPZMyiNbJqSXH9L_GNegbiBI';
+        
+        // Initialisation de Supabase (UNE SEULE DÉCLARATION)
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+            console.log('Supabase initialisé avec succès');
+        } catch (error) {
+            console.error('Erreur lors de l\'initialisation de Supabase:', error);
+            // En cas d'erreur, on utilise un système local
+            alert('Supabase non disponible, utilisation du mode local');
+        }
 
-// Remplacer toutes les fonctions localStorage par des appels Supabase
-async function saveRejetToSupabase(rejet) {
-    const { data, error } = await supabase
-        .from('rejets')
-        .insert([rejet]);
-    
-    if (error) {
-        console.error('Erreur:', error);
-        return false;
-    }
-    return true;
-}
-	
         // ============================================
         // DONNÉES ET INITIALISATION
         // ============================================
@@ -1976,6 +1979,19 @@ async function saveRejetToSupabase(rejet) {
                 status: 'active',
                 permissions: ['export'],
                 created_at: '2023-01-12'
+            },
+            // Ajout de votre compte pour la démo
+            {
+                id: 100,
+                username: 'sramadan',
+                fullname: 'Soumaïla Ramadan',
+                password: 'sramadan123', // Mot de passe pour la démo
+                email: 'sramadan@ecobank.com',
+                role: 'superviseur',
+                departement: 'corporate',
+                status: 'active',
+                permissions: ['export', 'reports', 'view_all'],
+                created_at: '2023-10-01'
             }
         ];
 
@@ -2419,7 +2435,7 @@ async function saveRejetToSupabase(rejet) {
             });
             
             // Mettre à jour l'agent courant
-            document.getElementById('current-agent').textContent = currentUser.username;
+            document.getElementById('current-agent').textContent = currentUser.fullname;
         }
 
         function createFieldHTML(champ) {
@@ -4125,17 +4141,17 @@ ${historiqueText}`);
         
         function setupEventListeners() {
             // Connexion
-            document.getElementById('loginForm').addEventListener('submit', function(e) {
+            document.getElementById('loginForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
-                const username = document.getElementById('loginUsername').value;
+                const email = document.getElementById('loginEmail').value;
                 const password = document.getElementById('loginPassword').value;
                 const role = document.getElementById('loginRole').value;
                 const language = document.getElementById('loginLanguage').value;
                 
-                // Vérifier les informations de connexion
+                // Vérifier les informations de connexion dans les données locales
                 const user = usersData.find(u => 
-                    u.username === username && 
+                    u.email === email && 
                     u.password === password && 
                     u.role === role &&
                     u.status === 'active'
@@ -4160,7 +4176,7 @@ ${historiqueText}`);
                     
                     // Mettre à jour l'interface utilisateur
                     document.getElementById('current-user').textContent = `${user.fullname} (${user.role})`;
-                    document.getElementById('current-agent').textContent = user.username;
+                    document.getElementById('current-agent').textContent = user.fullname;
                     document.getElementById('language-switcher').value = language;
                     
                     // Afficher/masquer les menus selon le rôle
@@ -4178,7 +4194,7 @@ ${historiqueText}`);
                     showPage('dashboard');
                 } else {
                     alert('Identifiants incorrects ou compte désactivé.');
-                    addLog('warning', 'Tentative connexion', `Échec connexion pour ${username}`);
+                    addLog('warning', 'Tentative connexion', `Échec connexion pour ${email}`);
                 }
             });
             
@@ -4462,6 +4478,9 @@ ${historiqueText}`);
             if (rejetsData.length === 0) {
                 saveAllData();
             }
+            
+            // Remplir l'email par défaut pour faciliter les tests
+            document.getElementById('loginEmail').value = 'sramadan@ecobank.com';
         });
     </script>
 </body>
