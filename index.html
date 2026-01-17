@@ -8,6 +8,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Ajout du script Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -756,6 +758,65 @@
             transform: translateX(26px);
         }
 
+        /* Barre de défilement et pagination */
+        .table-scroll-container {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #eaeaea;
+        }
+
+        .pagination-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .pagination-info {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .pagination-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            min-width: 40px;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: #eef2ff;
+            border-color: #5c6bc0;
+        }
+
+        .pagination-btn.active {
+            background: #3f51b5;
+            color: white;
+            border-color: #3f51b5;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .rows-per-page {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         /* Responsive */
         @media (max-width: 992px) {
             .main-layout {
@@ -805,6 +866,10 @@
                 width: 100%;
                 justify-content: flex-start;
             }
+
+            .pagination-controls {
+                flex-wrap: wrap;
+            }
         }
 
         @media (max-width: 768px) {
@@ -845,8 +910,8 @@
                     </div>
                     <form id="loginForm" class="login-form">
                         <div class="form-group">
-                            <label for="loginUsername">Nom d'utilisateur</label>
-                            <input type="text" id="loginUsername" class="form-control" placeholder="Votre identifiant" required>
+                            <label for="loginEmail">Email</label>
+                            <input type="email" id="loginEmail" class="form-control" placeholder="Votre email" required>
                         </div>
                         <div class="form-group">
                             <label for="loginPassword">Mot de passe</label>
@@ -1161,7 +1226,7 @@
                                 </div>
                             </div>
                             
-                            <div style="overflow-x: auto;">
+                            <div class="table-scroll-container">
                                 <table>
                                     <thead>
                                         <tr>
@@ -1183,8 +1248,26 @@
                             </div>
                         </div>
                         
-                        <div style="text-align: center; margin-top: 20px; color: #666;">
-                            <p id="rejets-count">0 rejets trouvés</p>
+                        <!-- Contrôles de pagination -->
+                        <div class="pagination-controls">
+                            <div class="pagination-info" id="pagination-info">
+                                Affichage de 0 à 0 sur 0 éléments
+                            </div>
+                            
+                            <div class="pagination-buttons" id="pagination-buttons">
+                                <!-- Les boutons de pagination seront générés dynamiquement -->
+                            </div>
+                            
+                            <div class="rows-per-page">
+                                <span>Afficher :</span>
+                                <select id="rows-per-page-select" class="filter-input">
+                                    <option value="10">10</option>
+                                    <option value="25" selected>25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                                <span>lignes</span>
+                            </div>
                         </div>
                     </div>
 
@@ -1747,6 +1830,25 @@
 
     <script>
         // ============================================
+        // INITIALISATION SUPABASE
+        // ============================================
+        
+        // Configuration Supabase avec vos informations
+        const supabaseUrl = 'https://qldfjdmpzvyhgsmepynp.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsZGZqZG1wenZ5aGdzbWVweW5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0OTU3NTEsImV4cCI6MjA4NDA3MTc1MX0.xAm9RrmzMCuxMfu4xjygPZMyiNbJqSXH9L_GNegbiBI';
+        
+        // Initialisation de Supabase (UNE SEULE DÉCLARATION)
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+            console.log('Supabase initialisé avec succès');
+        } catch (error) {
+            console.error('Erreur lors de l\'initialisation de Supabase:', error);
+            // En cas d'erreur, on utilise un système local
+            alert('Supabase non disponible, utilisation du mode local');
+        }
+
+        // ============================================
         // DONNÉES ET INITIALISATION
         // ============================================
         
@@ -1877,6 +1979,19 @@
                 status: 'active',
                 permissions: ['export'],
                 created_at: '2023-01-12'
+            },
+            // Ajout de votre compte pour la démo
+            {
+                id: 100,
+                username: 'sramadan',
+                fullname: 'Soumaïla Ramadan',
+                password: 'sramadan123', // Mot de passe pour la démo
+                email: 'sramadan@ecobank.com',
+                role: 'superviseur',
+                departement: 'corporate',
+                status: 'active',
+                permissions: ['export', 'reports', 'view_all'],
+                created_at: '2023-10-01'
             }
         ];
 
@@ -1954,6 +2069,11 @@
         let currentLanguage = 'fr';
         let currentPage = 'dashboard';
 
+        // Variables pour la pagination
+        let currentPageRejets = 1;
+        let rowsPerPage = 25;
+        let filteredRejetsList = [];
+
         // ============================================
         // FONCTIONS UTILITAIRES
         // ============================================
@@ -1994,7 +2114,7 @@
             return new Intl.NumberFormat('fr-FR', { 
                 style: 'currency', 
                 currency: 'XAF',
-                minimumFractionDigits: 2
+                minimumFractionDigits: 0
             }).format(amount);
         }
 
@@ -2315,7 +2435,7 @@
             });
             
             // Mettre à jour l'agent courant
-            document.getElementById('current-agent').textContent = currentUser.username;
+            document.getElementById('current-agent').textContent = currentUser.fullname;
         }
 
         function createFieldHTML(champ) {
@@ -2373,31 +2493,55 @@
             const deptFilter = document.getElementById('filter-departement').value;
             const statutFilter = document.getElementById('filter-statut').value;
             
-            let filteredRejets = rejetsData;
+            filteredRejetsList = rejetsData;
             
             if (dateFrom) {
-                filteredRejets = filteredRejets.filter(r => r.dateSaisie >= dateFrom);
+                filteredRejetsList = filteredRejetsList.filter(r => r.dateSaisie >= dateFrom);
             }
             if (dateTo) {
-                filteredRejets = filteredRejets.filter(r => r.dateSaisie <= dateTo);
+                filteredRejetsList = filteredRejetsList.filter(r => r.dateSaisie <= dateTo);
             }
             if (deptFilter) {
-                filteredRejets = filteredRejets.filter(r => r.departement === deptFilter);
+                filteredRejetsList = filteredRejetsList.filter(r => r.departement === deptFilter);
             }
             if (statutFilter) {
-                filteredRejets = filteredRejets.filter(r => r.statut === statutFilter);
+                filteredRejetsList = filteredRejetsList.filter(r => r.statut === statutFilter);
             }
             
             // Filtrer selon le rôle et les permissions
             if (currentUser.role === 'agent' && !currentUser.permissions.includes('view_all')) {
-                filteredRejets = filteredRejets.filter(r => r.agent === currentUser.username);
+                filteredRejetsList = filteredRejetsList.filter(r => r.agent === currentUser.username);
             }
             
             // Trier par date (plus récent d'abord)
-            filteredRejets.sort((a, b) => new Date(b.dateSaisie) - new Date(a.dateSaisie));
+            filteredRejetsList.sort((a, b) => new Date(b.dateSaisie) - new Date(a.dateSaisie));
             
-            // Afficher les rejets
-            filteredRejets.forEach(rejet => {
+            // Mettre à jour la pagination
+            updatePagination();
+        }
+
+        function updatePagination() {
+            const tbody = document.getElementById('rejets-table-body');
+            tbody.innerHTML = '';
+            
+            const totalItems = filteredRejetsList.length;
+            const totalPages = Math.ceil(totalItems / rowsPerPage);
+            
+            // Ajuster la page courante si nécessaire
+            if (currentPageRejets > totalPages && totalPages > 0) {
+                currentPageRejets = totalPages;
+            } else if (totalPages === 0) {
+                currentPageRejets = 1;
+            }
+            
+            // Calculer les indices de début et fin
+            const startIndex = (currentPageRejets - 1) * rowsPerPage;
+            const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
+            
+            // Afficher les rejets de la page courante
+            const pageRejets = filteredRejetsList.slice(startIndex, endIndex);
+            
+            pageRejets.forEach(rejet => {
                 const statutInfo = getStatutText(rejet.statut);
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -2427,7 +2571,103 @@
                 tbody.appendChild(row);
             });
             
-            document.getElementById('rejets-count').textContent = `${filteredRejets.length} rejets trouvés`;
+            // Mettre à jour l'info de pagination
+            document.getElementById('pagination-info').textContent = 
+                `Affichage de ${totalItems > 0 ? startIndex + 1 : 0} à ${endIndex} sur ${totalItems} éléments`;
+            
+            // Mettre à jour les boutons de pagination
+            updatePaginationButtons(totalPages);
+        }
+
+        function updatePaginationButtons(totalPages) {
+            const paginationButtons = document.getElementById('pagination-buttons');
+            paginationButtons.innerHTML = '';
+            
+            // Bouton précédent
+            const prevButton = document.createElement('button');
+            prevButton.className = 'pagination-btn';
+            prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            prevButton.disabled = currentPageRejets === 1;
+            prevButton.onclick = () => {
+                if (currentPageRejets > 1) {
+                    currentPageRejets--;
+                    updatePagination();
+                }
+            };
+            paginationButtons.appendChild(prevButton);
+            
+            // Boutons de pages
+            const maxButtons = 5;
+            let startPage = Math.max(1, currentPageRejets - Math.floor(maxButtons / 2));
+            let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+            
+            // Ajuster si on est proche de la fin
+            if (endPage - startPage + 1 < maxButtons) {
+                startPage = Math.max(1, endPage - maxButtons + 1);
+            }
+            
+            // Première page
+            if (startPage > 1) {
+                const firstButton = document.createElement('button');
+                firstButton.className = 'pagination-btn';
+                firstButton.textContent = '1';
+                firstButton.onclick = () => {
+                    currentPageRejets = 1;
+                    updatePagination();
+                };
+                paginationButtons.appendChild(firstButton);
+                
+                if (startPage > 2) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.textContent = '...';
+                    ellipsis.style.padding = '8px';
+                    paginationButtons.appendChild(ellipsis);
+                }
+            }
+            
+            // Pages
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.className = `pagination-btn ${i === currentPageRejets ? 'active' : ''}`;
+                pageButton.textContent = i;
+                pageButton.onclick = () => {
+                    currentPageRejets = i;
+                    updatePagination();
+                };
+                paginationButtons.appendChild(pageButton);
+            }
+            
+            // Dernière page
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.textContent = '...';
+                    ellipsis.style.padding = '8px';
+                    paginationButtons.appendChild(ellipsis);
+                }
+                
+                const lastButton = document.createElement('button');
+                lastButton.className = 'pagination-btn';
+                lastButton.textContent = totalPages;
+                lastButton.onclick = () => {
+                    currentPageRejets = totalPages;
+                    updatePagination();
+                };
+                paginationButtons.appendChild(lastButton);
+            }
+            
+            // Bouton suivant
+            const nextButton = document.createElement('button');
+            nextButton.className = 'pagination-btn';
+            nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            nextButton.disabled = currentPageRejets === totalPages || totalPages === 0;
+            nextButton.onclick = () => {
+                if (currentPageRejets < totalPages) {
+                    currentPageRejets++;
+                    updatePagination();
+                }
+            };
+            paginationButtons.appendChild(nextButton);
         }
 
         function loadFilterOptions() {
@@ -3901,17 +4141,17 @@ ${historiqueText}`);
         
         function setupEventListeners() {
             // Connexion
-            document.getElementById('loginForm').addEventListener('submit', function(e) {
+            document.getElementById('loginForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
-                const username = document.getElementById('loginUsername').value;
+                const email = document.getElementById('loginEmail').value;
                 const password = document.getElementById('loginPassword').value;
                 const role = document.getElementById('loginRole').value;
                 const language = document.getElementById('loginLanguage').value;
                 
-                // Vérifier les informations de connexion
+                // Vérifier les informations de connexion dans les données locales
                 const user = usersData.find(u => 
-                    u.username === username && 
+                    u.email === email && 
                     u.password === password && 
                     u.role === role &&
                     u.status === 'active'
@@ -3936,7 +4176,7 @@ ${historiqueText}`);
                     
                     // Mettre à jour l'interface utilisateur
                     document.getElementById('current-user').textContent = `${user.fullname} (${user.role})`;
-                    document.getElementById('current-agent').textContent = user.username;
+                    document.getElementById('current-agent').textContent = user.fullname;
                     document.getElementById('language-switcher').value = language;
                     
                     // Afficher/masquer les menus selon le rôle
@@ -3954,7 +4194,7 @@ ${historiqueText}`);
                     showPage('dashboard');
                 } else {
                     alert('Identifiants incorrects ou compte désactivé.');
-                    addLog('warning', 'Tentative connexion', `Échec connexion pour ${username}`);
+                    addLog('warning', 'Tentative connexion', `Échec connexion pour ${email}`);
                 }
             });
             
@@ -4204,6 +4444,13 @@ ${historiqueText}`);
                 alert('Export des logs généré!');
             });
             
+            // Pagination - changement du nombre de lignes par page
+            document.getElementById('rows-per-page-select').addEventListener('change', function() {
+                rowsPerPage = parseInt(this.value);
+                currentPageRejets = 1;
+                updatePagination();
+            });
+            
             // Initialiser les dates
             const today = new Date();
             const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -4231,6 +4478,9 @@ ${historiqueText}`);
             if (rejetsData.length === 0) {
                 saveAllData();
             }
+            
+            // Remplir l'email par défaut pour faciliter les tests
+            document.getElementById('loginEmail').value = 'sramadan@ecobank.com';
         });
     </script>
 </body>
