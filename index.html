@@ -1830,30 +1830,21 @@
 
     <script>
         // ============================================
-        // INITIALISATION SUPABASE - CORRECTION
+        // INITIALISATION SUPABASE
         // ============================================
         
         // Configuration Supabase avec vos informations
         const supabaseUrl = 'https://qldfjdmpzvyhgsmepynp.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsZGZqZG1wenZ5aGdzbWVweW5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0OTU3NTEsImV4cCI6MjA4NDA3MTc1MX0.xAm9RrmzMCuxMfu4xjygPZMyiNbJqSXH9L_GNegbiBI';
         
-        // Initialisation de Supabase (version corrigée)
-        let supabaseClient;
+        // Initialisation de Supabase (UNE SEULE DÉCLARATION)
+        let supabase;
         try {
-            supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
             console.log('Supabase initialisé avec succès');
-            
-            // Vérification de la connexion
-            supabaseClient.from('users').select('count', { count: 'exact', head: true })
-                .then(response => {
-                    if (response.error) {
-                        console.warn('Supabase connecté mais erreur de requête:', response.error.message);
-                    } else {
-                        console.log('Connexion Supabase active, prêt à utiliser en temps réel');
-                    }
-                });
         } catch (error) {
             console.error('Erreur lors de l\'initialisation de Supabase:', error);
+            // En cas d'erreur, on utilise un système local
             alert('Supabase non disponible, utilisation du mode local');
         }
 
@@ -2093,48 +2084,6 @@
             localStorage.setItem('usersData', JSON.stringify(usersData));
             localStorage.setItem('saisieConfig', JSON.stringify(saisieConfig));
             localStorage.setItem('activityLogs', JSON.stringify(activityLogs));
-            
-            // Synchroniser avec Supabase si disponible
-            if (supabaseClient) {
-                syncWithSupabase();
-            }
-        }
-
-        async function syncWithSupabase() {
-            if (!supabaseClient || !currentUser) return;
-            
-            try {
-                // Synchroniser les rejets
-                for (const rejet of rejetsData) {
-                    const { error } = await supabaseClient
-                        .from('rejets')
-                        .upsert({
-                            id: rejet.id,
-                            reference: rejet.reference,
-                            type: rejet.type,
-                            departement: rejet.departement,
-                            charge: rejet.charge,
-                            client_nom: rejet.clientNom,
-                            client_compte: rejet.clientCompte,
-                            montant: rejet.montant,
-                            date_operation: rejet.date,
-                            motif: rejet.motif,
-                            commentaire: rejet.commentaire,
-                            agent: rejet.agent,
-                            date_saisie: rejet.dateSaisie,
-                            statut: rejet.statut,
-                            historique: rejet.historique,
-                            champs_supplementaires: rejet.champsSupplementaires,
-                            updated_at: new Date().toISOString()
-                        }, { onConflict: 'id' });
-                    
-                    if (error) console.error('Erreur sync rejet:', error);
-                }
-                
-                console.log('Synchronisation Supabase réussie');
-            } catch (error) {
-                console.error('Erreur synchronisation Supabase:', error);
-            }
         }
 
         function addLog(level, action, details) {
@@ -2145,7 +2094,7 @@
                 user: currentUser ? currentUser.username : 'system',
                 action: action,
                 details: details,
-                ip: '127.0.0.1'
+                ip: '127.0.0.1' // Dans une vraie app, on récupérerait l'IP réelle
             };
             activityLogs.push(log);
             saveAllData();
@@ -2177,6 +2126,7 @@
         }
 
         function getMotifText(code) {
+            // Chercher dans les motifs configurés
             const motif = saisieConfig.motifs.find(m => 
                 m.toLowerCase().replace(/[^a-z0-9]/g, '_') === code
             );
@@ -2184,6 +2134,7 @@
         }
 
         function getDepartementText(code) {
+            // Chercher dans les départements configurés
             const dept = saisieConfig.departements.find(d => 
                 d.toLowerCase().replace(/[^a-z0-9]/g, '_') === code
             );
@@ -2215,12 +2166,15 @@
         // ============================================
         
         function showPage(pageId) {
+            // Cacher toutes les pages
             document.querySelectorAll('.page-content').forEach(page => {
                 page.style.display = 'none';
             });
             
+            // Afficher la page demandée
             document.getElementById(`${pageId}-page`).style.display = 'block';
             
+            // Mettre à jour la navigation
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
                 if (item.getAttribute('data-page') === pageId) {
@@ -2228,6 +2182,7 @@
                 }
             });
             
+            // Mettre à jour le contenu selon la page
             switch(pageId) {
                 case 'dashboard':
                     updateDashboard();
@@ -2258,6 +2213,7 @@
         }
 
         function updateDashboard() {
+            // Calculer les statistiques
             const today = new Date().toISOString().split('T')[0];
             const rejetsToday = rejetsData.filter(r => r.dateSaisie === today).length;
             const rejetsMonth = rejetsData.filter(r => {
@@ -2266,6 +2222,7 @@
                 return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
             }).length;
             
+            // Calculer les rejets à valider selon le rôle
             let aValider = 0;
             if (currentUser.role === 'superviseur') {
                 aValider = rejetsData.filter(r => r.statut === 'attente_validation' || r.statut === 'valide').length;
@@ -2273,24 +2230,29 @@
                 aValider = rejetsData.filter(r => r.statut === 'transmis').length;
             }
             
+            // Calculer le taux de validation
             const totalValides = rejetsData.filter(r => r.statut === 'valide' || r.statut === 'transmis' || r.statut === 'recu').length;
             const tauxValidation = rejetsData.length > 0 ? Math.round((totalValides / rejetsData.length) * 100) : 0;
             
+            // Mettre à jour les cartes
             document.getElementById('rejets-today').textContent = rejetsToday;
             document.getElementById('rejets-month').textContent = rejetsMonth;
             document.getElementById('a-valider').textContent = aValider;
             document.getElementById('taux-validation').textContent = tauxValidation + '%';
             
+            // Texte selon le rôle
             const trendText = currentUser.role === 'superviseur' ? 'Attente superviseur' : 
                              currentUser.role === 'gestionnaire' ? 'Attente gestionnaire' : 
                              'En cours de traitement';
             document.getElementById('a-valider-trend').textContent = trendText;
             
+            // Mettre à jour les graphiques
             updateCharts();
             updateTopClients();
         }
 
         function updateCharts() {
+            // Graphique par statut
             const statutCounts = {
                 enregistre: 0,
                 attente_validation: 0,
@@ -2312,6 +2274,7 @@
                 statutCounts.recu
             ];
             
+            // Supprimer l'ancien graphique s'il existe
             const statutCanvas = document.getElementById('statutChart');
             const statutCtx = statutCanvas.getContext('2d');
             if (window.statutChartInstance) {
@@ -2325,11 +2288,11 @@
                     datasets: [{
                         data: statutData,
                         backgroundColor: [
-                            '#2196f3',
-                            '#ff9800',
-                            '#4caf50',
-                            '#9c27b0',
-                            '#2e7d32'
+                            '#2196f3', // Enregistré - bleu
+                            '#ff9800', // Attente validation - orange
+                            '#4caf50', // Validé - vert
+                            '#9c27b0', // Transmis - violet
+                            '#2e7d32'  // Reçu - vert foncé
                         ]
                     }]
                 },
@@ -2343,6 +2306,7 @@
                 }
             });
             
+            // Graphique par département
             const deptCounts = {};
             rejetsData.forEach(r => {
                 deptCounts[r.departement] = (deptCounts[r.departement] || 0) + 1;
@@ -2351,6 +2315,7 @@
             const deptLabels = Object.keys(deptCounts).map(getDepartementText);
             const deptData = Object.values(deptCounts);
             
+            // Supprimer l'ancien graphique s'il existe
             const deptCanvas = document.getElementById('departementChart');
             const deptCtx = deptCanvas.getContext('2d');
             if (window.deptChartInstance) {
@@ -2384,6 +2349,7 @@
         }
 
         function updateTopClients() {
+            // Compter les rejets par client
             const clientCounts = {};
             rejetsData.forEach(r => {
                 if (r.clientNom) {
@@ -2391,6 +2357,7 @@
                 }
             });
             
+            // Trier par nombre de rejets
             const topClients = Object.entries(clientCounts)
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 5);
@@ -2415,6 +2382,7 @@
         }
 
         function loadSaisieForm() {
+            // Charger les types de pièces
             const typePieceSelect = document.getElementById('type-piece');
             typePieceSelect.innerHTML = '<option value="">Sélectionnez...</option>';
             saisieConfig.types_pieces.forEach(type => {
@@ -2426,6 +2394,7 @@
                 typePieceSelect.appendChild(option);
             });
             
+            // Charger les départements
             const departementSelect = document.getElementById('departement');
             departementSelect.innerHTML = '<option value="">Sélectionnez...</option>';
             saisieConfig.departements.forEach(dept => {
@@ -2436,6 +2405,7 @@
                 departementSelect.appendChild(option);
             });
             
+            // Charger les motifs
             const motifSelect = document.getElementById('motif');
             motifSelect.innerHTML = '<option value="">Sélectionnez...</option>';
             saisieConfig.motifs.forEach(motif => {
@@ -2446,6 +2416,7 @@
                 motifSelect.appendChild(option);
             });
             
+            // Charger les chargés
             const chargeSelect = document.getElementById('charge');
             chargeSelect.innerHTML = '<option value="">Sélectionnez...</option>';
             saisieConfig.charges.forEach(charge => {
@@ -2455,6 +2426,7 @@
                 chargeSelect.appendChild(option);
             });
             
+            // Charger les champs supplémentaires
             const additionalFields = document.getElementById('additional-fields');
             additionalFields.innerHTML = '';
             saisieConfig.champs_supplementaires.forEach(champ => {
@@ -2462,6 +2434,7 @@
                 additionalFields.insertAdjacentHTML('beforeend', fieldHTML);
             });
             
+            // Mettre à jour l'agent courant
             document.getElementById('current-agent').textContent = currentUser.fullname;
         }
 
@@ -2511,8 +2484,10 @@
             const tbody = document.getElementById('rejets-table-body');
             tbody.innerHTML = '';
             
+            // Charger les options de filtres
             loadFilterOptions();
             
+            // Appliquer les filtres
             const dateFrom = document.getElementById('filter-date-from').value;
             const dateTo = document.getElementById('filter-date-to').value;
             const deptFilter = document.getElementById('filter-departement').value;
@@ -2533,12 +2508,15 @@
                 filteredRejetsList = filteredRejetsList.filter(r => r.statut === statutFilter);
             }
             
+            // Filtrer selon le rôle et les permissions
             if (currentUser.role === 'agent' && !currentUser.permissions.includes('view_all')) {
                 filteredRejetsList = filteredRejetsList.filter(r => r.agent === currentUser.username);
             }
             
+            // Trier par date (plus récent d'abord)
             filteredRejetsList.sort((a, b) => new Date(b.dateSaisie) - new Date(a.dateSaisie));
             
+            // Mettre à jour la pagination
             updatePagination();
         }
 
@@ -2549,15 +2527,18 @@
             const totalItems = filteredRejetsList.length;
             const totalPages = Math.ceil(totalItems / rowsPerPage);
             
+            // Ajuster la page courante si nécessaire
             if (currentPageRejets > totalPages && totalPages > 0) {
                 currentPageRejets = totalPages;
             } else if (totalPages === 0) {
                 currentPageRejets = 1;
             }
             
+            // Calculer les indices de début et fin
             const startIndex = (currentPageRejets - 1) * rowsPerPage;
             const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
             
+            // Afficher les rejets de la page courante
             const pageRejets = filteredRejetsList.slice(startIndex, endIndex);
             
             pageRejets.forEach(rejet => {
@@ -2590,9 +2571,11 @@
                 tbody.appendChild(row);
             });
             
+            // Mettre à jour l'info de pagination
             document.getElementById('pagination-info').textContent = 
                 `Affichage de ${totalItems > 0 ? startIndex + 1 : 0} à ${endIndex} sur ${totalItems} éléments`;
             
+            // Mettre à jour les boutons de pagination
             updatePaginationButtons(totalPages);
         }
 
@@ -2600,6 +2583,7 @@
             const paginationButtons = document.getElementById('pagination-buttons');
             paginationButtons.innerHTML = '';
             
+            // Bouton précédent
             const prevButton = document.createElement('button');
             prevButton.className = 'pagination-btn';
             prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
@@ -2612,14 +2596,17 @@
             };
             paginationButtons.appendChild(prevButton);
             
+            // Boutons de pages
             const maxButtons = 5;
             let startPage = Math.max(1, currentPageRejets - Math.floor(maxButtons / 2));
             let endPage = Math.min(totalPages, startPage + maxButtons - 1);
             
+            // Ajuster si on est proche de la fin
             if (endPage - startPage + 1 < maxButtons) {
                 startPage = Math.max(1, endPage - maxButtons + 1);
             }
             
+            // Première page
             if (startPage > 1) {
                 const firstButton = document.createElement('button');
                 firstButton.className = 'pagination-btn';
@@ -2638,6 +2625,7 @@
                 }
             }
             
+            // Pages
             for (let i = startPage; i <= endPage; i++) {
                 const pageButton = document.createElement('button');
                 pageButton.className = `pagination-btn ${i === currentPageRejets ? 'active' : ''}`;
@@ -2649,6 +2637,7 @@
                 paginationButtons.appendChild(pageButton);
             }
             
+            // Dernière page
             if (endPage < totalPages) {
                 if (endPage < totalPages - 1) {
                     const ellipsis = document.createElement('span');
@@ -2667,6 +2656,7 @@
                 paginationButtons.appendChild(lastButton);
             }
             
+            // Bouton suivant
             const nextButton = document.createElement('button');
             nextButton.className = 'pagination-btn';
             nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
@@ -2681,6 +2671,7 @@
         }
 
         function loadFilterOptions() {
+            // Charger les départements
             const deptFilter = document.getElementById('filter-departement');
             if (deptFilter.options.length <= 1) {
                 const defaultOption = deptFilter.querySelector('option');
@@ -2696,6 +2687,7 @@
                 });
             }
             
+            // Charger les statuts
             const statutFilter = document.getElementById('filter-statut');
             if (statutFilter.options.length <= 1) {
                 const defaultOption = statutFilter.querySelector('option');
@@ -2719,6 +2711,7 @@
             
             let rejetsAVerifier = [];
             
+            // Filtrer selon le rôle
             if (currentUser.role === 'superviseur') {
                 rejetsAVerifier = rejetsData.filter(r => 
                     r.statut === 'attente_validation' || r.statut === 'valide'
@@ -2727,6 +2720,7 @@
                 rejetsAVerifier = rejetsData.filter(r => r.statut === 'transmis');
             }
             
+            // Appliquer le filtre type
             const filterType = document.getElementById('validation-filter-type').value;
             if (filterType === 'a_valider') {
                 rejetsAVerifier = rejetsAVerifier.filter(r => r.statut === 'attente_validation');
@@ -2734,10 +2728,13 @@
                 rejetsAVerifier = rejetsAVerifier.filter(r => r.statut === 'transmis');
             }
             
+            // Trier par date (plus ancien d'abord)
             rejetsAVerifier.sort((a, b) => new Date(a.dateSaisie) - new Date(b.dateSaisie));
             
+            // Mettre à jour les statistiques
             document.getElementById('pending-validation').textContent = rejetsAVerifier.length;
             
+            // Afficher les rejets
             rejetsAVerifier.forEach(rejet => {
                 const statutInfo = getStatutText(rejet.statut);
                 const nextAction = getNextAction(rejet.statut, currentUser.role);
@@ -2771,6 +2768,7 @@
                 tbody.appendChild(row);
             });
             
+            // Mettre à jour les autres statistiques
             const today = new Date().toISOString().split('T')[0];
             const validatedToday = rejetsData.filter(r => {
                 const lastAction = r.historique && r.historique.length > 0 ? r.historique[r.historique.length - 1] : null;
@@ -2787,12 +2785,14 @@
         }
 
         function loadRapports() {
+            // Initialiser les dates
             const today = new Date();
             const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
             
             document.getElementById('rapport-date-from').valueAsDate = firstDay;
             document.getElementById('rapport-date-to').valueAsDate = today;
             
+            // Mettre à jour le rapport
             updateRapport();
         }
 
@@ -2801,6 +2801,7 @@
             const dateTo = document.getElementById('rapport-date-to').value;
             const rapportType = document.getElementById('rapport-type').value;
             
+            // Filtrer les rejets par période
             let filteredRejets = rejetsData;
             if (dateFrom) {
                 filteredRejets = filteredRejets.filter(r => r.dateSaisie >= dateFrom);
@@ -2809,6 +2810,7 @@
                 filteredRejets = filteredRejets.filter(r => r.dateSaisie <= dateTo);
             }
             
+            // Calculer les statistiques
             const totalRejets = filteredRejets.length;
             const totalMontant = filteredRejets.reduce((sum, r) => sum + r.montant, 0);
             const totalValides = filteredRejets.filter(r => 
@@ -2816,6 +2818,7 @@
             ).length;
             const tauxValidation = totalRejets > 0 ? Math.round((totalValides / totalRejets) * 100) : 0;
             
+            // Trouver le motif le plus fréquent
             const motifCounts = {};
             filteredRejets.forEach(r => {
                 motifCounts[r.motif] = (motifCounts[r.motif] || 0) + 1;
@@ -2829,6 +2832,7 @@
                 }
             }
             
+            // Mettre à jour l'affichage
             document.getElementById('rapport-period').textContent = 
                 `Période : Du ${formatDate(dateFrom)} au ${formatDate(dateTo)}`;
             document.getElementById('rapport-total').textContent = totalRejets;
@@ -2836,6 +2840,7 @@
             document.getElementById('rapport-taux').textContent = tauxValidation + '%';
             document.getElementById('rapport-top-motif').textContent = topMotif;
             
+            // Mettre à jour le tableau
             const tbody = document.getElementById('rapport-table-body');
             tbody.innerHTML = '';
             
@@ -2856,23 +2861,32 @@
                 tbody.appendChild(row);
             });
             
+            // Mettre à jour les graphiques
             updateRapportCharts(filteredRejets, dateFrom, dateTo);
+            
+            // Mettre à jour la liste des clients
             updateRapportClients(filteredRejets);
+            
+            // Générer l'analyse
             generateRapportAnalyse(filteredRejets, totalRejets, totalMontant, tauxValidation);
         }
 
         function updateRapportCharts(filteredRejets, dateFrom, dateTo) {
+            // Graphique d'évolution
             const evolutionCtx = document.getElementById('evolutionChart').getContext('2d');
             
+            // Calculer l'évolution par jour
             const evolutionData = {};
             const startDate = new Date(dateFrom);
             const endDate = new Date(dateTo);
             
+            // Initialiser tous les jours entre startDate et endDate
             for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
                 const dateStr = d.toISOString().split('T')[0];
                 evolutionData[dateStr] = 0;
             }
             
+            // Compter les rejets par jour
             filteredRejets.forEach(rejet => {
                 if (evolutionData[rejet.dateSaisie] !== undefined) {
                     evolutionData[rejet.dateSaisie]++;
@@ -2884,6 +2898,7 @@
             );
             const evolutionValues = Object.values(evolutionData);
             
+            // Supprimer l'ancien graphique s'il existe
             if (window.evolutionChartInstance) {
                 window.evolutionChartInstance.destroy();
             }
@@ -2915,6 +2930,7 @@
                 }
             });
             
+            // Graphique par département
             const rapportDeptCtx = document.getElementById('rapportDepartementChart').getContext('2d');
             
             const deptCounts = {};
@@ -2925,6 +2941,7 @@
             const deptLabels = Object.keys(deptCounts).map(getDepartementText);
             const deptData = Object.values(deptCounts);
             
+            // Supprimer l'ancien graphique s'il existe
             if (window.rapportDeptChartInstance) {
                 window.rapportDeptChartInstance.destroy();
             }
@@ -2953,6 +2970,7 @@
         }
 
         function updateRapportClients(filteredRejets) {
+            // Compter les rejets par client
             const clientCounts = {};
             filteredRejets.forEach(r => {
                 if (r.clientNom) {
@@ -2960,6 +2978,7 @@
                 }
             });
             
+            // Trier par nombre de rejets
             const topClients = Object.entries(clientCounts)
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 10);
@@ -2999,6 +3018,7 @@
                 return;
             }
             
+            // Calculer des statistiques supplémentaires
             const rejetsParJour = totalRejets / filteredRejets.length > 0 ? 
                 (totalRejets / (new Set(filteredRejets.map(r => r.dateSaisie)).size)).toFixed(1) : 0;
             
@@ -3008,6 +3028,7 @@
             
             const tempsMoyenTraitement = calculateAverageProcessingTime(filteredRejets);
             
+            // Déterminer le département avec le plus de rejets
             const deptCounts = {};
             filteredRejets.forEach(r => {
                 deptCounts[r.departement] = (deptCounts[r.departement] || 0) + 1;
@@ -3037,6 +3058,7 @@
                     <li>Département avec le plus de rejets : ${topDept} (${maxDeptCount} rejets)</li>
             `;
             
+            // Ajouter des recommandations
             if (tauxValidation < 70) {
                 analyseHTML += '<li>⚠️ Le taux de validation est bas. Considérez une revue des processus.</li>';
             }
@@ -3147,6 +3169,7 @@
                 tbody.appendChild(row);
             });
             
+            // Charger les départements dans le modal
             const modalDeptSelect = document.getElementById('modal-departement');
             modalDeptSelect.innerHTML = '<option value="">Sélectionnez...</option>';
             saisieConfig.departements.forEach(dept => {
@@ -3158,6 +3181,7 @@
         }
 
         function loadConfigTab() {
+            // Charger les valeurs de configuration
             document.getElementById('config-2fa').checked = systemConfig.security['2fa'];
             document.getElementById('config-session').value = systemConfig.security.session_timeout;
             document.getElementById('config-max-attempts').value = systemConfig.security.max_login_attempts;
@@ -3176,6 +3200,7 @@
         }
 
         function loadOptionsTab() {
+            // Types de pièces
             const piecesList = document.getElementById('piece-types-list');
             piecesList.innerHTML = '';
             saisieConfig.types_pieces.forEach((type, index) => {
@@ -3197,6 +3222,7 @@
                 piecesList.appendChild(item);
             });
             
+            // Départements
             const deptsList = document.getElementById('departements-list');
             deptsList.innerHTML = '';
             saisieConfig.departements.forEach((dept, index) => {
@@ -3216,6 +3242,7 @@
                 deptsList.appendChild(item);
             });
             
+            // Motifs
             const motifsList = document.getElementById('motifs-list');
             motifsList.innerHTML = '';
             saisieConfig.motifs.forEach((motif, index) => {
@@ -3235,6 +3262,7 @@
                 motifsList.appendChild(item);
             });
             
+            // Chargés
             const chargesList = document.getElementById('charges-list');
             chargesList.innerHTML = '';
             saisieConfig.charges.forEach((charge, index) => {
@@ -3254,6 +3282,7 @@
                 chargesList.appendChild(item);
             });
             
+            // Champs supplémentaires
             const fieldsConfig = document.getElementById('additional-fields-config');
             fieldsConfig.innerHTML = '';
             saisieConfig.champs_supplementaires.forEach((champ, index) => {
@@ -3286,6 +3315,7 @@
             const tbody = document.getElementById('logs-table-body');
             tbody.innerHTML = '';
             
+            // Filtrer les logs
             const dateFrom = document.getElementById('log-date-from').value;
             const dateTo = document.getElementById('log-date-to').value;
             const logLevel = document.getElementById('log-level').value;
@@ -3302,8 +3332,10 @@
                 filteredLogs = filteredLogs.filter(log => log.level === logLevel);
             }
             
+            // Trier par date (plus récent d'abord)
             filteredLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             
+            // Afficher les logs
             filteredLogs.forEach(log => {
                 const row = document.createElement('tr');
                 let levelClass = '';
@@ -3348,6 +3380,7 @@
             const form = document.getElementById('user-form');
             
             if (userId) {
+                // Mode édition
                 const user = usersData.find(u => u.id === userId);
                 if (user) {
                     title.textContent = 'Modifier l\'utilisateur';
@@ -3359,14 +3392,17 @@
                     document.getElementById('modal-departement').value = user.departement || '';
                     document.getElementById('modal-status').value = user.status;
                     
+                    // Permissions
                     document.getElementById('permission-export').checked = user.permissions.includes('export');
                     document.getElementById('permission-reports').checked = user.permissions.includes('reports');
                     document.getElementById('permission-view-all').checked = user.permissions.includes('view_all');
                     
+                    // Rendre le champ mot de passe optionnel en édition
                     document.getElementById('modal-password').removeAttribute('required');
                     document.getElementById('modal-confirm-password').removeAttribute('required');
                 }
             } else {
+                // Mode création
                 title.textContent = 'Ajouter un utilisateur';
                 form.reset();
                 document.getElementById('modal-user-id').value = '';
@@ -3415,6 +3451,7 @@ ${historiqueText}`);
         function viewWorkflow(id) {
             const rejet = rejetsData.find(r => r.id === id);
             if (rejet) {
+                // Créer une modale simple pour le workflow
                 let workflowHTML = `
                     <div style="max-width: 500px;">
                         <h3 style="margin-bottom: 15px;">Workflow du rejet ${rejet.reference}</h3>
@@ -3481,6 +3518,7 @@ ${historiqueText}`);
                     </div>
                 `;
                 
+                // Créer une modale simple
                 const modal = document.createElement('div');
                 modal.style.cssText = `
                     position: fixed;
@@ -3547,8 +3585,10 @@ ${historiqueText}`);
             }
             
             if (confirm(message)) {
+                // Mettre à jour le statut
                 rejet.statut = newStatut;
                 
+                // Ajouter à l'historique
                 rejet.historique.push({
                     action: newAction,
                     user: currentUser.username,
@@ -3559,6 +3599,7 @@ ${historiqueText}`);
                 saveAllData();
                 addLog('info', `Action ${newAction}`, `Rejet ${rejet.reference} ${newAction} par ${currentUser.username}`);
                 
+                // Mettre à jour l'affichage
                 if (currentPage === 'validation') {
                     loadValidationTable();
                 } else if (currentPage === 'rejets') {
@@ -3566,6 +3607,7 @@ ${historiqueText}`);
                 }
                 updateDashboard();
                 
+                // Message de confirmation
                 const actionText = newAction === 'valide' ? 'validé' :
                                   newAction === 'transmis' ? 'transmis au gestionnaire' :
                                   newAction === 'recu' ? 'marqué comme reçu' : newAction;
@@ -3621,12 +3663,14 @@ ${historiqueText}`);
             const password = document.getElementById('modal-password').value;
             const confirmPassword = document.getElementById('modal-confirm-password').value;
             
+            // Validation
             if (password && password !== confirmPassword) {
                 alert('Les mots de passe ne correspondent pas.');
                 return;
             }
             
             if (userId) {
+                // Mise à jour
                 const user = usersData.find(u => u.id === parseInt(userId));
                 if (user) {
                     user.username = document.getElementById('modal-username').value;
@@ -3640,6 +3684,7 @@ ${historiqueText}`);
                         user.password = password;
                     }
                     
+                    // Permissions
                     user.permissions = [];
                     if (document.getElementById('permission-export').checked) user.permissions.push('export');
                     if (document.getElementById('permission-reports').checked) user.permissions.push('reports');
@@ -3649,6 +3694,7 @@ ${historiqueText}`);
                           `Utilisateur ${user.username} mis à jour par ${currentUser.username}`);
                 }
             } else {
+                // Création
                 const newUser = {
                     id: usersData.length > 0 ? Math.max(...usersData.map(u => u.id)) + 1 : 1,
                     username: document.getElementById('modal-username').value,
@@ -3662,6 +3708,7 @@ ${historiqueText}`);
                     created_at: new Date().toISOString().split('T')[0]
                 };
                 
+                // Permissions
                 if (document.getElementById('permission-export').checked) newUser.permissions.push('export');
                 if (document.getElementById('permission-reports').checked) newUser.permissions.push('reports');
                 if (document.getElementById('permission-view-all').checked) newUser.permissions.push('view_all');
@@ -3678,18 +3725,22 @@ ${historiqueText}`);
         }
 
         function saveConfig() {
+            // Sécurité
             systemConfig.security['2fa'] = document.getElementById('config-2fa').checked;
             systemConfig.security.session_timeout = parseInt(document.getElementById('config-session').value) || 30;
             systemConfig.security.max_login_attempts = parseInt(document.getElementById('config-max-attempts').value) || 3;
             
+            // Notifications
             systemConfig.notifications.email = document.getElementById('config-email-notif').checked;
             systemConfig.notifications.supervisor_alerts = document.getElementById('config-supervisor-alerts').checked;
             systemConfig.notifications.auto_reports = document.getElementById('config-auto-reports').value;
             
+            // Rapports
             systemConfig.reports.data_retention = parseInt(document.getElementById('config-data-retention').value) || 365;
             systemConfig.reports.default_pdf_format = document.getElementById('config-pdf-format').value;
             systemConfig.reports.include_charts = document.getElementById('config-include-charts').checked;
             
+            // Système
             systemConfig.system.maintenance_mode = document.getElementById('config-maintenance').checked;
             systemConfig.system.default_language = document.getElementById('config-default-language').value;
             systemConfig.system.auto_backup = document.getElementById('config-auto-backup').checked;
@@ -3939,12 +3990,15 @@ ${historiqueText}`);
         
         async function generatePDF() {
             try {
+                // Afficher un message de chargement
                 const originalBtnText = document.getElementById('generate-pdf').innerHTML;
                 document.getElementById('generate-pdf').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération en cours...';
                 document.getElementById('generate-pdf').disabled = true;
                 
+                // Capturer le contenu du rapport
                 const element = document.getElementById('rapport-content');
                 
+                // Utiliser html2canvas pour capturer le contenu
                 const canvas = await html2canvas(element, {
                     scale: 2,
                     useCORS: true,
@@ -3965,6 +4019,7 @@ ${historiqueText}`);
                 let heightLeft = imgHeight;
                 let position = 10;
                 
+                // Ajouter l'en-tête
                 pdf.setFontSize(16);
                 pdf.setTextColor(26, 35, 126);
                 pdf.text('Rapport détaillé des rejets', 105, 15, { align: 'center' });
@@ -3974,10 +4029,12 @@ ${historiqueText}`);
                 pdf.text('Système de Gestion des Rejets - Banque', 105, 20, { align: 'center' });
                 pdf.text(`Généré le ${new Date().toLocaleDateString('fr-FR')} par ${currentUser.username}`, 105, 25, { align: 'center' });
                 
+                // Ajouter l'image
                 pdf.addImage(imgData, 'PNG', 10, 30, imgWidth, imgHeight);
                 
                 heightLeft -= pageHeight;
                 
+                // Ajouter des pages supplémentaires si nécessaire
                 while (heightLeft > 0) {
                     position = heightLeft - imgHeight;
                     pdf.addPage();
@@ -3985,6 +4042,7 @@ ${historiqueText}`);
                     heightLeft -= pageHeight;
                 }
                 
+                // Ajouter le pied de page
                 const pageCount = pdf.internal.getNumberOfPages();
                 for (let i = 1; i <= pageCount; i++) {
                     pdf.setPage(i);
@@ -3994,11 +4052,13 @@ ${historiqueText}`);
                     pdf.text('Document confidentiel - Usage interne uniquement', 105, 290, { align: 'center' });
                 }
                 
+                // Télécharger le PDF
                 const fileName = `rapport_rejets_${new Date().toISOString().split('T')[0]}.pdf`;
                 pdf.save(fileName);
                 
                 addLog('info', 'Génération PDF', `Rapport PDF généré: ${fileName}`);
                 
+                // Restaurer le bouton
                 document.getElementById('generate-pdf').innerHTML = originalBtnText;
                 document.getElementById('generate-pdf').disabled = false;
                 
@@ -4007,12 +4067,14 @@ ${historiqueText}`);
                 console.error('Erreur lors de la génération du PDF:', error);
                 alert('Erreur lors de la génération du PDF. Veuillez réessayer.');
                 
+                // Restaurer le bouton en cas d'erreur
                 document.getElementById('generate-pdf').innerHTML = '<i class="fas fa-file-pdf"></i> Générer PDF';
                 document.getElementById('generate-pdf').disabled = false;
             }
         }
 
         function generateQuickReport() {
+            // Générer un rapport rapide du dashboard
             const today = new Date().toISOString().split('T')[0];
             const rejetsToday = rejetsData.filter(r => r.dateSaisie === today).length;
             const rejetsMonth = rejetsData.filter(r => {
@@ -4024,6 +4086,7 @@ ${historiqueText}`);
             const totalValides = rejetsData.filter(r => r.statut === 'valide' || r.statut === 'transmis' || r.statut === 'recu').length;
             const tauxValidation = rejetsData.length > 0 ? Math.round((totalValides / rejetsData.length) * 100) : 0;
             
+            // Créer un PDF simple
             const pdf = new window.jspdf.jsPDF();
             
             pdf.setFontSize(18);
@@ -4045,6 +4108,7 @@ ${historiqueText}`);
             pdf.text(`• Rejets ce mois : ${rejetsMonth}`, 30, 95);
             pdf.text(`• Taux de validation : ${tauxValidation}%`, 30, 105);
             
+            // Ajouter un tableau des derniers rejets
             pdf.setFontSize(14);
             pdf.setTextColor(63, 81, 181);
             pdf.text('Derniers rejets', 20, 125);
@@ -4059,6 +4123,7 @@ ${historiqueText}`);
                 y += 7;
             });
             
+            // Pied de page
             pdf.setFontSize(8);
             pdf.setTextColor(100, 100, 100);
             pdf.text('Document généré automatiquement - Système de Gestion des Rejets', 105, 287, { align: 'center' });
@@ -4084,81 +4149,48 @@ ${historiqueText}`);
                 const role = document.getElementById('loginRole').value;
                 const language = document.getElementById('loginLanguage').value;
                 
-                // Tentative de connexion avec Supabase
-                let authenticated = false;
+                // Vérifier les informations de connexion dans les données locales
+                const user = usersData.find(u => 
+                    u.email === email && 
+                    u.password === password && 
+                    u.role === role &&
+                    u.status === 'active'
+                );
                 
-                if (supabaseClient) {
-                    try {
-                        // Rechercher l'utilisateur dans Supabase
-                        const { data, error } = await supabaseClient
-                            .from('users')
-                            .select('*')
-                            .eq('email', email)
-                            .eq('password', password)
-                            .eq('role', role)
-                            .eq('status', 'active')
-                            .single();
-                        
-                        if (data && !error) {
-                            authenticated = true;
-                            currentUser = {
-                                id: data.id,
-                                username: data.username,
-                                fullname: data.fullname,
-                                role: data.role,
-                                permissions: data.permissions || [],
-                                language: language
-                            };
-                            
-                            // Synchroniser les données locales avec Supabase
-                            await loadDataFromSupabase();
-                        }
-                    } catch (error) {
-                        console.warn('Erreur Supabase, utilisation du mode local:', error);
-                    }
-                }
-                
-                // Fallback vers le mode local
-                if (!authenticated) {
-                    const user = usersData.find(u => 
-                        u.email === email && 
-                        u.password === password && 
-                        u.role === role &&
-                        u.status === 'active'
-                    );
+                if (user) {
+                    currentUser = {
+                        id: user.id,
+                        username: user.username,
+                        fullname: user.fullname,
+                        role: user.role,
+                        permissions: user.permissions,
+                        language: language
+                    };
                     
-                    if (user) {
-                        authenticated = true;
-                        currentUser = {
-                            id: user.id,
-                            username: user.username,
-                            fullname: user.fullname,
-                            role: user.role,
-                            permissions: user.permissions,
-                            language: language
-                        };
-                    }
-                }
-                
-                if (authenticated && currentUser) {
+                    // Sauvegarder la langue
                     currentLanguage = language;
                     
+                    // Cacher login, afficher app
                     document.getElementById('login-screen').style.display = 'none';
                     document.getElementById('main-app').style.display = 'block';
                     
-                    document.getElementById('current-user').textContent = `${currentUser.fullname} (${currentUser.role})`;
-                    document.getElementById('current-agent').textContent = currentUser.fullname;
+                    // Mettre à jour l'interface utilisateur
+                    document.getElementById('current-user').textContent = `${user.fullname} (${user.role})`;
+                    document.getElementById('current-agent').textContent = user.fullname;
                     document.getElementById('language-switcher').value = language;
                     
-                    if (currentUser.role === 'superviseur' || currentUser.role === 'gestionnaire') {
+                    // Afficher/masquer les menus selon le rôle
+                    if (user.role === 'superviseur' || user.role === 'gestionnaire') {
                         document.getElementById('validation-nav').style.display = 'flex';
                     }
-                    if (currentUser.role === 'superviseur') {
+                    if (user.role === 'superviseur') {
                         document.getElementById('admin-nav').style.display = 'flex';
                     }
                     
-                    addLog('info', 'Connexion', `Connexion réussie pour ${currentUser.username}`);
+                    // Ajouter un log
+                    addLog('info', 'Connexion', `Connexion réussie pour ${user.username}`);
                     
+                    // Afficher le dashboard
                     showPage('dashboard');
                 } else {
                     alert('Identifiants incorrects ou compte désactivé.');
@@ -4188,11 +4220,13 @@ ${historiqueText}`);
                 tab.addEventListener('click', function() {
                     const tabId = this.getAttribute('data-tab');
                     
+                    // Mettre à jour les tabs
                     document.querySelectorAll('.tab').forEach(t => {
                         t.classList.remove('active');
                     });
                     this.classList.add('active');
                     
+                    // Afficher le contenu correspondant
                     document.querySelectorAll('.tab-content').forEach(content => {
                         content.classList.remove('active');
                     });
@@ -4221,12 +4255,14 @@ ${historiqueText}`);
                     const id = nom.toLowerCase().replace(/[^a-z0-9]/g, '_');
                     const departement = prompt("Département du chargé:");
                     if (departement) {
+                        // Ajouter à la configuration
                         saisieConfig.charges.push({
                             id: id,
                             nom: nom.toUpperCase(),
                             departement: departement
                         });
                         
+                        // Ajouter à la liste déroulante
                         const select = document.getElementById('charge');
                         const option = document.createElement('option');
                         option.value = id;
@@ -4244,8 +4280,10 @@ ${historiqueText}`);
             document.getElementById('add-motif-btn').addEventListener('click', function() {
                 const motif = prompt("Nouveau motif de rejet:");
                 if (motif) {
+                    // Ajouter à la configuration
                     saisieConfig.motifs.push(motif);
                     
+                    // Ajouter à la liste déroulante
                     const select = document.getElementById('motif');
                     const option = document.createElement('option');
                     const value = motif.toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -4272,6 +4310,7 @@ ${historiqueText}`);
             document.getElementById('rejet-form').addEventListener('submit', function(e) {
                 e.preventDefault();
                 
+                // Validation basique
                 const typePiece = document.getElementById('type-piece').value;
                 const departement = document.getElementById('departement').value;
                 const charge = document.getElementById('charge').value;
@@ -4284,6 +4323,7 @@ ${historiqueText}`);
                     return;
                 }
                 
+                // Collecter les champs supplémentaires
                 const champsSupplementaires = {};
                 saisieConfig.champs_supplementaires.forEach(champ => {
                     const fieldValue = document.getElementById(`field-${champ.id}`)?.value;
@@ -4292,6 +4332,7 @@ ${historiqueText}`);
                     }
                 });
                 
+                // Créer le nouvel objet rejet avec workflow
                 const newRejet = {
                     id: rejetsData.length > 0 ? Math.max(...rejetsData.map(r => r.id)) + 1 : 1,
                     reference: document.getElementById('reference').value,
@@ -4318,20 +4359,25 @@ ${historiqueText}`);
                     ]
                 };
                 
+                // Ajouter aux données
                 rejetsData.push(newRejet);
                 saveAllData();
                 addLog('info', 'Création rejet', `Rejet ${newRejet.reference} créé par ${currentUser.username}`);
                 
+                // Réinitialiser le formulaire
                 this.reset();
                 document.getElementById('reference').value = 'Généré automatiquement';
                 
+                // Réinitialiser les champs supplémentaires
                 saisieConfig.champs_supplementaires.forEach(champ => {
                     const field = document.getElementById(`field-${champ.id}`);
                     if (field) field.value = '';
                 });
                 
+                // Afficher confirmation
                 alert(`Rejet ${newRejet.reference} enregistré et soumis au superviseur pour validation!`);
                 
+                // Retour au dashboard
                 showPage('dashboard');
             });
             
@@ -4398,7 +4444,7 @@ ${historiqueText}`);
                 alert('Export des logs généré!');
             });
             
-            // Pagination
+            // Pagination - changement du nombre de lignes par page
             document.getElementById('rows-per-page-select').addEventListener('change', function() {
                 rowsPerPage = parseInt(this.value);
                 currentPageRejets = 1;
@@ -4409,85 +4455,16 @@ ${historiqueText}`);
             const today = new Date();
             const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
             
+            // Formulaire de saisie
             document.getElementById('date-operation').valueAsDate = today;
             
+            // Filtres
             document.getElementById('filter-date-from').valueAsDate = firstDay;
             document.getElementById('filter-date-to').valueAsDate = today;
             
+            // Logs
             document.getElementById('log-date-from').valueAsDate = firstDay;
             document.getElementById('log-date-to').valueAsDate = today;
-        }
-
-        // ============================================
-        // FONCTIONS SUPABASE
-        // ============================================
-        
-        async function loadDataFromSupabase() {
-            if (!supabaseClient) return;
-            
-            try {
-                // Charger les rejets depuis Supabase
-                const { data: rejetsSupabase, error: rejetsError } = await supabaseClient
-                    .from('rejets')
-                    .select('*')
-                    .order('date_saisie', { ascending: false });
-                
-                if (!rejetsError && rejetsSupabase && rejetsSupabase.length > 0) {
-                    // Convertir les données Supabase au format local
-                    rejetsData = rejetsSupabase.map(r => ({
-                        id: r.id,
-                        reference: r.reference,
-                        type: r.type,
-                        departement: r.departement,
-                        charge: r.charge,
-                        clientNom: r.client_nom,
-                        clientCompte: r.client_compte,
-                        montant: r.montant,
-                        date: r.date_operation,
-                        motif: r.motif,
-                        commentaire: r.commentaire,
-                        agent: r.agent,
-                        dateSaisie: r.date_saisie,
-                        statut: r.statut,
-                        historique: r.historique || [],
-                        champsSupplementaires: r.champs_supplementaires || {}
-                    }));
-                    
-                    localStorage.setItem('rejetsData', JSON.stringify(rejetsData));
-                    console.log('Rejets chargés depuis Supabase:', rejetsData.length);
-                }
-                
-                // Charger les utilisateurs depuis Supabase
-                const { data: usersSupabase, error: usersError } = await supabaseClient
-                    .from('users')
-                    .select('*');
-                
-                if (!usersError && usersSupabase && usersSupabase.length > 0) {
-                    usersData = usersSupabase.map(u => ({
-                        id: u.id,
-                        username: u.username,
-                        fullname: u.fullname,
-                        password: u.password,
-                        email: u.email,
-                        role: u.role,
-                        departement: u.departement,
-                        status: u.status,
-                        permissions: u.permissions || [],
-                        created_at: u.created_at
-                    }));
-                    
-                    localStorage.setItem('usersData', JSON.stringify(usersData));
-                    console.log('Utilisateurs chargés depuis Supabase:', usersData.length);
-                }
-                
-                // Mettre à jour l'affichage si on est connecté
-                if (currentUser && currentPage === 'dashboard') {
-                    updateDashboard();
-                }
-                
-            } catch (error) {
-                console.error('Erreur chargement données Supabase:', error);
-            }
         }
 
         // ============================================
@@ -4497,17 +4474,13 @@ ${historiqueText}`);
         document.addEventListener('DOMContentLoaded', function() {
             setupEventListeners();
             
+            // Initialiser les données si vides
             if (rejetsData.length === 0) {
                 saveAllData();
             }
             
             // Remplir l'email par défaut pour faciliter les tests
             document.getElementById('loginEmail').value = 'sramadan@ecobank.com';
-            
-            // Vérifier la connexion Supabase au chargement
-            if (supabaseClient) {
-                console.log('Application prête avec connexion Supabase en temps réel');
-            }
         });
     </script>
 </body>
