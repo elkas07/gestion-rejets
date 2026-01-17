@@ -1833,91 +1833,98 @@
         // INITIALISATION SUPABASE
         // ============================================
         
-        // Configuration Supabase avec vos informations
-        const supabaseUrl = 'https://qldfjdmpzvyhgsmepynp.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsZGZqZG1wenZ5aGdzbWVweW5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0OTU3NTEsImV4cCI6MjA4NDA3MTc1MX0.xAm9RrmzMCuxMfu4xjygPZMyiNbJqSXH9L_GNegbiBI';
-        
-        // Initialisation de Supabase (UNE SEULE DÉCLARATION)
-        let supabase;
-        try {
-            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-            console.log('Supabase initialisé avec succès');
-        } catch (error) {
-            console.error('Erreur lors de l\'initialisation de Supabase:', error);
-            // En cas d'erreur, on utilise un système local
-            alert('Supabase non disponible, utilisation du mode local');
-        }
-
         // ============================================
-        // DONNÉES ET INITIALISATION
-        // ============================================
-        
-        // Données de démonstration avec workflow complet
-        let rejetsData = JSON.parse(localStorage.getItem('rejetsData')) || [
-            {
-                id: 1,
-                reference: 'REJ-OV-2023-001',
-                type: 'OV',
-                departement: 'corporate',
-                charge: 'amine.rachidi',
-                clientNom: 'SARL ALPHA TECH',
-                clientCompte: '0123456789',
-                montant: 125000.50,
-                date: '2023-10-15',
-                motif: 'provision_insuffisante',
-                commentaire: 'Solde insuffisant pour exécution',
-                agent: 'agent1',
-                dateSaisie: '2023-10-15',
-                statut: 'valide',
-                historique: [
-                    { action: 'enregistre', user: 'agent1', date: '2023-10-15 09:30', role: 'agent' },
-                    { action: 'valide', user: 'superviseur1', date: '2023-10-15 14:15', role: 'superviseur' },
-                    { action: 'transmis', user: 'superviseur1', date: '2023-10-15 14:20', role: 'superviseur' },
-                    { action: 'recu', user: 'gestionnaire1', date: '2023-10-16 10:00', role: 'gestionnaire' }
-                ]
-            },
-            {
-                id: 2,
-                reference: 'REJ-RC-2023-002',
-                type: 'RC',
-                departement: 'sme',
-                charge: 'fatima.zahra',
-                clientNom: 'EURL BETA SERVICES',
-                clientCompte: '9876543210',
-                montant: 8500.00,
-                date: '2023-10-16',
-                motif: 'signature_non_conforme',
-                commentaire: 'Signature ne correspond pas à la fiche',
-                agent: 'agent2',
-                dateSaisie: '2023-10-16',
-                statut: 'attente_validation',
-                historique: [
-                    { action: 'enregistre', user: 'agent2', date: '2023-10-16 11:45', role: 'agent' }
-                ]
-            },
-            {
-                id: 3,
-                reference: 'REJ-OV-2023-003',
-                type: 'OV',
-                departement: 'vip',
-                charge: 'karim.alami',
-                clientNom: 'M. MOHAMED KARIM',
-                clientCompte: '4561237890',
-                montant: 25000.00,
-                date: '2023-10-17',
-                motif: 'rib_errone',
-                commentaire: 'RIB incorrect - banque non trouvée',
-                agent: 'agent1',
-                dateSaisie: '2023-10-17',
-                statut: 'transmis',
-                historique: [
-                    { action: 'enregistre', user: 'agent1', date: '2023-10-17 10:20', role: 'agent' },
-                    { action: 'valide', user: 'superviseur1', date: '2023-10-17 15:30', role: 'superviseur' },
-                    { action: 'transmis', user: 'superviseur1', date: '2023-10-17 15:35', role: 'superviseur' }
-                ]
-            }
-        ];
+// CONFIGURATION ET INITIALISATION SUPABASE
+// ============================================
 
+const supabaseUrl = 'https://qldfjdmpzvyhgsmepynp.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsZGZqZG1wenZ5aGdzbWVweW5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0OTU3NTEsImV4cCI6MjA4NDA3MTc1MX0.xAm9RrmzMCuxMfu4xjygPZMyiNbJqSXH9L_GNegbiBI';
+
+// Utilisation d'un nom unique (supabaseClient) pour éviter le conflit avec la bibliothèque
+let supabaseClient; 
+
+try {
+    // On vérifie si la bibliothèque window.supabase est bien chargée
+    if (window.supabase) {
+        supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        console.log('Supabase initialisé avec succès sous le nom : supabaseClient');
+    } else {
+        throw new Error('La bibliothèque Supabase est introuvable (script non chargé)');
+    }
+} catch (error) {
+    console.error('Erreur lors de l\'initialisation de Supabase:', error);
+    alert('Supabase non disponible, utilisation du mode local uniquement');
+}
+
+// ============================================
+// DONNÉES ET INITIALISATION
+// ============================================
+
+// Données de démonstration avec workflow complet
+let rejetsData = JSON.parse(localStorage.getItem('rejetsData')) || [
+    {
+        id: 1,
+        reference: 'REJ-OV-2023-001',
+        type: 'OV',
+        departement: 'corporate',
+        charge: 'amine.rachidi',
+        clientNom: 'SARL ALPHA TECH',
+        clientCompte: '0123456789',
+        montant: 125000.50,
+        date: '2023-10-15',
+        motif: 'provision_insuffisante',
+        commentaire: 'Solde insuffisant pour exécution',
+        agent: 'agent1',
+        dateSaisie: '2023-10-15',
+        statut: 'valide',
+        historique: [
+            { action: 'enregistre', user: 'agent1', date: '2023-10-15 09:30', role: 'agent' },
+            { action: 'valide', user: 'superviseur1', date: '2023-10-15 14:15', role: 'superviseur' },
+            { action: 'transmis', user: 'superviseur1', date: '2023-10-15 14:20', role: 'superviseur' },
+            { action: 'recu', user: 'gestionnaire1', date: '2023-10-16 10:00', role: 'gestionnaire' }
+        ]
+    },
+    {
+        id: 2,
+        reference: 'REJ-RC-2023-002',
+        type: 'RC',
+        departement: 'sme',
+        charge: 'fatima.zahra',
+        clientNom: 'EURL BETA SERVICES',
+        clientCompte: '9876543210',
+        montant: 8500.00,
+        date: '2023-10-16',
+        motif: 'signature_non_conforme',
+        commentaire: 'Signature ne correspond pas à la fiche',
+        agent: 'agent2',
+        dateSaisie: '2023-10-16',
+        statut: 'attente_validation',
+        historique: [
+            { action: 'enregistre', user: 'agent2', date: '2023-10-16 11:45', role: 'agent' }
+        ]
+    },
+    {
+        id: 3,
+        reference: 'REJ-OV-2023-003',
+        type: 'OV',
+        departement: 'vip',
+        charge: 'karim.alami',
+        clientNom: 'M. MOHAMED KARIM',
+        clientCompte: '4561237890',
+        montant: 25000.00,
+        date: '2023-10-17',
+        motif: 'rib_errone',
+        commentaire: 'RIB incorrect - banque non trouvée',
+        agent: 'agent1',
+        dateSaisie: '2023-10-17',
+        statut: 'transmis',
+        historique: [
+            { action: 'enregistre', user: 'agent1', date: '2023-10-17 10:20', role: 'agent' },
+            { action: 'valide', user: 'superviseur1', date: '2023-10-17 15:30', role: 'superviseur' },
+            { action: 'transmis', user: 'superviseur1', date: '2023-10-17 15:35', role: 'superviseur' }
+        ]
+    }
+];
         // Configuration système
         let systemConfig = JSON.parse(localStorage.getItem('systemConfig')) || {
             security: {
