@@ -2075,11 +2075,10 @@ if (typeof supabase === 'undefined') {
         // Authentification avec Supabase
         async function authenticateUser(identifier, password, role) {
     try {
-        // 1. On prépare les variables pour correspondre à la base
+        // 1. On prépare le rôle pour correspondre à la base (minuscules)
         const roleLower = role.toLowerCase();
 
-        // 2. On cherche l'utilisateur par EMAIL ou USERNAME
-        // Note: On a supprimé le filtre 'status' qui n'existe pas dans votre table
+        // 2. Recherche par email OU username
         const { data, error } = await supabase
             .from('users')
             .select('*')
@@ -2098,12 +2097,12 @@ if (typeof supabase === 'undefined') {
             return { success: false, message: 'Utilisateur non trouvé.' };
         }
         
-        // 3. CORRECTION : On utilise 'password_hash' (le nom dans votre table Supabase)
+        // 3. Comparaison du mot de passe (colonne password_hash)
         if (data.password_hash !== password) {
             return { success: false, message: 'Mot de passe incorrect.' };
         }
         
-        // 4. Succès ! On retourne les données de l'utilisateur
+        // 4. Retour des données
         return { 
             success: true, 
             user: {
@@ -2121,6 +2120,7 @@ if (typeof supabase === 'undefined') {
         console.error('Erreur d\'authentification:', error);
         return { success: false, message: 'Erreur technique lors de la connexion.' };
     }
+} // <--- Assurez-vous que cette accolade est bien là et n'est pas suivie d'une autre } inutile
 
         // Mettre à jour le mot de passe d'un utilisateur
         async function updateUserPassword(userId, newPassword) {
