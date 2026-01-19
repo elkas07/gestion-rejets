@@ -2073,13 +2073,11 @@ if (typeof supabase === 'undefined') {
         }
 
         // Authentification avec Supabase
-        async function authenticateUser(identifier, password, role) {
+       async function authenticateUser(identifier, password, role) {
     try {
-        // 1. On force le rôle en minuscules pour correspondre à la base de données
         const roleLower = role.toLowerCase();
 
-        // 2. On cherche par email OU username (pour pouvoir utiliser 'sramadan')
-        // Note : On retire le filtre 'status' car la colonne n'existe pas dans vos images
+        // 1. Appel Supabase
         const { data, error } = await supabase
             .from('users')
             .select('*')
@@ -2098,12 +2096,12 @@ if (typeof supabase === 'undefined') {
             return { success: false, message: 'Utilisateur non trouvé.' };
         }
 
-        // 3. CORRECTION : On utilise 'password_hash' qui est le nom réel de votre colonne
+        // 2. Vérification du mot de passe
         if (data.password_hash !== password) {
             return { success: false, message: 'Mot de passe incorrect.' };
         }
 
-        // 4. Succès : On retourne l'objet utilisateur
+        // 3. Retour des données
         return { 
             success: true, 
             user: {
@@ -2122,7 +2120,6 @@ if (typeof supabase === 'undefined') {
         return { success: false, message: 'Erreur lors de l\'authentification.' };
     }
 }
-
         // Mettre à jour le mot de passe d'un utilisateur
         async function updateUserPassword(userId, newPassword) {
             try {
