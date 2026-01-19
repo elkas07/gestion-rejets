@@ -2075,34 +2075,35 @@ if (typeof supabase === 'undefined') {
         // Authentification avec Supabase
         async function authenticateUser(identifier, password, role) {
     try {
-        // 1. On prépare le rôle pour correspondre à la base (minuscules)
+        // 1. On force le rôle en minuscules pour correspondre à la base de données
         const roleLower = role.toLowerCase();
 
-        // 2. Recherche par email OU username
+        // 2. On cherche par email OU username (pour pouvoir utiliser 'sramadan')
+        // Note : On retire le filtre 'status' car la colonne n'existe pas dans vos images
         const { data, error } = await supabase
             .from('users')
             .select('*')
             .or(`email.eq.${identifier},username.eq.${identifier}`)
             .eq('role', roleLower)
             .single();
-        
+
         if (error) {
-            if (error.code === 'PGRST116') { // Aucun résultat trouvé
+            if (error.code === 'PGRST116') {
                 return { success: false, message: 'Identifiants ou rôle incorrects.' };
             }
             throw error;
         }
-        
+
         if (!data) {
             return { success: false, message: 'Utilisateur non trouvé.' };
         }
-        
-        // 3. Comparaison du mot de passe (colonne password_hash)
+
+        // 3. CORRECTION : On utilise 'password_hash' qui est le nom réel de votre colonne
         if (data.password_hash !== password) {
             return { success: false, message: 'Mot de passe incorrect.' };
         }
-        
-        // 4. Retour des données
+
+        // 4. Succès : On retourne l'objet utilisateur
         return { 
             success: true, 
             user: {
@@ -2115,12 +2116,12 @@ if (typeof supabase === 'undefined') {
                 departement: data.departement
             }
         };
-        
+
     } catch (error) {
         console.error('Erreur d\'authentification:', error);
-        return { success: false, message: 'Erreur technique lors de la connexion.' };
+        return { success: false, message: 'Erreur lors de l\'authentification.' };
     }
-} // <--- Assurez-vous que cette accolade est bien là et n'est pas suivie d'une autre } inutile
+}
 
         // Mettre à jour le mot de passe d'un utilisateur
         async function updateUserPassword(userId, newPassword) {
