@@ -4422,56 +4422,50 @@ ${historiqueText}`);
         }
 
         // ============================================
-        // GESTION DES ÉVÉNEMENTS
-        // ============================================
+// GESTIONNAIRE DE CONNEXION CORRIGÉ
+// ============================================
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    
+    // CORRECTION : On force le rôle en minuscules pour correspondre à la base de données
+    const role = document.getElementById('loginRole').value.toLowerCase(); 
+    
+    const language = document.getElementById('loginLanguage').value;
+    
+    // Authentification avec Supabase
+    const authResult = await authenticateUser(email, password, role);
+    
+    if (authResult.success) {
+        currentUser = authResult.user;
+        currentLanguage = language;
         
-        function setupEventListeners() {
-            // Connexion
-            document.getElementById('loginForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const email = document.getElementById('loginEmail').value;
-                const password = document.getElementById('loginPassword').value;
-                const role = document.getElementById('loginRole').value;
-                const language = document.getElementById('loginLanguage').value;
-                
-                // Authentification avec Supabase
-                const authResult = await authenticateUser(email, password, role);
-                
-                if (authResult.success) {
-                    currentUser = authResult.user;
-                    
-                    // Sauvegarder la langue
-                    currentLanguage = language;
-                    
-                    // Cacher login, afficher app
-                    document.getElementById('login-screen').style.display = 'none';
-                    document.getElementById('main-app').style.display = 'block';
-                    
-                    // Mettre à jour l'interface utilisateur
-                    document.getElementById('current-user').textContent = `${currentUser.fullname} (${currentUser.role})`;
-                    document.getElementById('current-agent').textContent = currentUser.fullname;
-                    document.getElementById('language-switcher').value = language;
-                    
-                    // Afficher/masquer les menus selon le rôle
-                    if (currentUser.role === 'superviseur' || currentUser.role === 'gestionnaire') {
-                        document.getElementById('validation-nav').style.display = 'flex';
-                    }
-                    if (currentUser.role === 'superviseur') {
-                        document.getElementById('admin-nav').style.display = 'flex';
-                    }
-                    
-                    // Ajouter un log
-                    addLog('info', 'Connexion', `Connexion réussie pour ${currentUser.username}`);
-                    
-                    // Afficher le dashboard
-                    showPage('dashboard');
-                } else {
-                    alert(authResult.message);
-                    addLog('warning', 'Tentative connexion', `Échec connexion pour ${email}`);
-                }
-            });
-            
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-app').style.display = 'block';
+        
+        // On affiche le rôle avec la première lettre en majuscule pour faire joli dans l'interface
+        const roleDisplay = currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1);
+        document.getElementById('current-user').textContent = `${currentUser.fullname} (${roleDisplay})`;
+        document.getElementById('current-agent').textContent = currentUser.fullname;
+        document.getElementById('language-switcher').value = language;
+        
+        // Afficher/masquer les menus selon le rôle (on vérifie en minuscules)
+        if (currentUser.role === 'superviseur' || currentUser.role === 'gestionnaire') {
+            document.getElementById('validation-nav').style.display = 'flex';
+        }
+        if (currentUser.role === 'superviseur') {
+            document.getElementById('admin-nav').style.display = 'flex';
+        }
+        
+        addLog('info', 'Connexion', `Connexion réussie pour ${currentUser.username}`);
+        showPage('dashboard');
+    } else {
+        alert(authResult.message);
+        addLog('warning', 'Tentative connexion', `Échec connexion pour ${email}`);
+    }
+});
             // Déconnexion
             document.getElementById('logout-btn').addEventListener('click', function() {
                 addLog('info', 'Déconnexion', `Déconnexion de ${currentUser.username}`);
