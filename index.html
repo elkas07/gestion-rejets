@@ -2073,51 +2073,55 @@ if (typeof supabase === 'undefined') {
         }
 
         // Authentification avec Supabase
-        async function authenticateUser(email, password, role) {
-            try {
-                // Vérifier l'utilisateur dans la table users
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('email', email)
-                    .eq('role', role)
-                    .eq('status', 'active')
-                    .single();
-                
-                if (error) {
-                    if (error.code === 'PGRST116') { // Aucun résultat trouvé
-                        return { success: false, message: 'Identifiants incorrects ou compte désactivé.' };
-                    }
-                    throw error;
-                }
-                
-                if (!data) {
-                    return { success: false, message: 'Identifiants incorrects.' };
-                }
-                
-                // Vérifier le mot de passe (dans une vraie app, il faudrait utiliser le hash)
-                if (data.password !== password) {
-                    return { success: false, message: 'Mot de passe incorrect.' };
-                }
-                
-                return { 
-                    success: true, 
-                    user: {
-                        id: data.id,
-                        username: data.username,
-                        fullname: data.fullname,
-                        email: data.email,
-                        role: data.role,
-                        permissions: data.permissions || [],
-                        departement: data.departement
-                    }
-                };
-                
-            } catch (error) {
-                console.error('Erreur d\'authentification:', error);
-                return { success: false, message: 'Erreur lors de l\'authentification.' };
+        async function authenticateUser(identifier, password, role) {
+    try {
+        // 1. On prépare les variables pour correspondre à la base
+        const roleLower = role.toLowerCase();
+
+        // 2. On cherche l'utilisateur par EMAIL ou USERNAME
+        // Note: On a supprimé le filtre 'status' qui n'existe pas dans votre table
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .or(`email.eq.${identifier},username.eq.${identifier}`)
+            .eq('role', roleLower)
+            .single();
+        
+        if (error) {
+            if (error.code === 'PGRST116') { // Aucun résultat trouvé
+                return { success: false, message: 'Identifiants ou rôle incorrects.' };
             }
+            throw error;
         }
+        
+        if (!data) {
+            return { success: false, message: 'Utilisateur non trouvé.' };
+        }
+        
+        // 3. CORRECTION : On utilise 'password_hash' (le nom dans votre table Supabase)
+        if (data.password_hash !== password) {
+            return { success: false, message: 'Mot de passe incorrect.' };
+        }
+        
+        // 4. Succès ! On retourne les données de l'utilisateur
+        return { 
+            success: true, 
+            user: {
+                id: data.id,
+                username: data.username,
+                fullname: data.fullname,
+                email: data.email,
+                role: data.role,
+                permissions: data.permissions || [],
+                departement: data.departement
+            }
+        };
+        
+    } catch (error) {
+        console.error('Erreur d\'authentification:', error);
+        return { success: false, message: 'Erreur technique lors de la connexion.' };
+    }
+}
 
         // Mettre à jour le mot de passe d'un utilisateur
         async function updateUserPassword(userId, newPassword) {
