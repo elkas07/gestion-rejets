@@ -1923,15 +1923,18 @@
     </div>
 
     <script>
-        // Remplacez votre bloc actuel par celui-ci :
+        // ============================================
+// INITIALISATION SUPABASE
+// ============================================
 const supabaseUrl = 'https://qldfjdmpzvyhgsmepynp.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // (votre clé complète)
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsZGZqZG1wenZ5aGdzbWVweW5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0OTU3NTEsImV4cCI6MjA4NDA3MTc1MX0.xAm9RrmzMCuxMfu4xjygPZMyiNbJqSXH9L_GNegbiBI';
 
-// On utilise "window.supabaseClient" ou on vérifie l'existence pour éviter le conflit
-if (typeof window.supabaseInstance === 'undefined') {
-    window.supabaseInstance = window.supabase.createClient(supabaseUrl, supabaseKey);
-}
-const supabase = window.supabaseInstance;
+// On utilise 'db' ou 'supabaseClient' pour éviter le conflit de nom avec le SDK
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+// Note : Si l'erreur persiste sur la ligne "const supabase", 
+// remplacez simplement le mot "const" par "var" ou changez le nom comme ceci :
+// var supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         // Configuration système
         let systemConfig = JSON.parse(localStorage.getItem('systemConfig')) || {
