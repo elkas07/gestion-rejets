@@ -58,90 +58,99 @@ const App: React.FC = () => {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 p-6">
-        <div className="mb-8 flex flex-col items-center animate-bounce">
-            <div className="bg-cyan-500 text-slate-950 px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest shadow-[0_0_30px_rgba(6,182,212,0.4)] border-2 border-cyan-300">
-               <i className="fas fa-crown mr-2"></i> v3.6 PLATINUM
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-tr from-slate-950 via-blue-900 to-slate-900 p-6">
+        {/* Badge Flottant pour confirmer le déploiement */}
+        <div className="mb-8 animate-bounce">
+            <div className="bg-gradient-to-r from-cyan-400 to-blue-500 text-white px-8 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.3em] shadow-[0_10px_40px_rgba(6,182,212,0.5)] border-2 border-white/20">
+               <i className="fas fa-gem mr-2"></i> VERSION PLATINUM 3.6
             </div>
         </div>
 
-        <div className="bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] w-full max-w-md p-12 border border-slate-100">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-50 rounded-3xl text-blue-600 mb-6 shadow-inner">
+        <div className="bg-white rounded-[3rem] shadow-[0_30px_100px_rgba(0,0,0,0.5)] w-full max-w-md p-12 border border-white/20 relative overflow-hidden group">
+          {/* Décoration de fond */}
+          <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-blue-50 rounded-full blur-3xl opacity-50 group-hover:opacity-80 transition-opacity"></div>
+          
+          <div className="relative z-10 text-center mb-10">
+            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-600 to-blue-800 rounded-[2rem] text-white mb-6 shadow-xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
               <i className="fas fa-university text-4xl"></i>
             </div>
-            <h1 className="text-4xl font-black text-slate-900 uppercase tracking-tighter leading-none mb-2">EcoBank</h1>
-            <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Gestion des Rejets OV / RC</p>
+            <h1 className="text-5xl font-black text-slate-950 uppercase tracking-tighter leading-none mb-3">EcoBank</h1>
+            <p className="text-blue-600 text-[10px] font-black uppercase tracking-[0.4em]">Gestion des Rejets OV/RC</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleLogin} className="relative z-10 space-y-6">
             {error && (
-              <div className="p-4 bg-red-50 border border-red-100 text-red-700 text-xs font-bold rounded-2xl flex items-center gap-3 animate-pulse">
+              <div className="p-4 bg-red-50 border border-red-100 text-red-700 text-xs font-bold rounded-2xl flex items-center gap-3 animate-shake">
                 <i className="fas fa-exclamation-circle text-lg"></i>
                 {error}
               </div>
             )}
             
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Email pro</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Email Professionnel</label>
               <input 
                 type="email" 
                 value={loginData.email}
                 onChange={e => setLoginData({...loginData, email: e.target.value})}
-                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 focus:border-blue-500 focus:bg-white outline-none transition-all font-bold text-slate-900" 
+                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 focus:border-blue-600 focus:bg-white outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300" 
                 placeholder="nom@ecobank.com"
                 required 
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Mot de passe</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Mot de passe</label>
               <input 
                 type="password" 
                 value={loginData.password}
                 onChange={e => setLoginData({...loginData, password: e.target.value})}
-                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 focus:border-blue-500 focus:bg-white outline-none transition-all font-bold text-slate-900" 
+                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 focus:border-blue-600 focus:bg-white outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300" 
                 placeholder="••••••••"
                 required 
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Rôle</label>
-              <select 
-                value={loginData.role}
-                onChange={e => setLoginData({...loginData, role: e.target.value as any})}
-                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 focus:border-blue-500 outline-none transition-all font-black text-slate-700 appearance-none cursor-pointer"
-              >
-                <option value="agent">Agent OPS</option>
-                <option value="superviseur">Superviseur</option>
-                <option value="gestionnaire">Gestionnaire</option>
-              </select>
+              <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Rôle d'accès</label>
+              <div className="relative">
+                <select 
+                  value={loginData.role}
+                  onChange={e => setLoginData({...loginData, role: e.target.value as any})}
+                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 focus:border-blue-600 outline-none transition-all font-black text-slate-800 appearance-none cursor-pointer"
+                >
+                  <option value="agent">AGENT OPS</option>
+                  <option value="superviseur">SUPERVISEUR</option>
+                  <option value="gestionnaire">GESTIONNAIRE</option>
+                </select>
+                <i className="fas fa-chevron-down absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none"></i>
+              </div>
             </div>
 
-            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-5 rounded-2xl shadow-2xl shadow-blue-500/40 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 text-sm uppercase tracking-[0.15em] mt-4">
-              <i className="fas fa-shield-alt"></i> Connexion
+            <button type="submit" className="w-full bg-slate-950 hover:bg-blue-600 text-white font-black py-5 rounded-2xl shadow-2xl shadow-slate-950/20 transition-all hover:scale-[1.03] active:scale-95 flex items-center justify-center gap-3 text-sm uppercase tracking-[0.2em] mt-4">
+              <i className="fas fa-lock"></i> Accéder au SGR
             </button>
           </form>
 
-          <div className="mt-12 pt-8 border-t border-slate-100 text-center">
+          <div className="relative z-10 mt-12 pt-8 border-t border-slate-100 text-center">
             <button 
               onClick={() => { setIsPublicPwdChange(true); setShowPwdModal(true); }}
               className="text-slate-400 text-[10px] font-black hover:text-blue-600 transition-colors uppercase tracking-widest"
             >
-              Réinitialiser mon accès
+              Besoin d'aide pour votre accès ?
             </button>
           </div>
         </div>
+        
+        <p className="mt-8 text-white/30 text-[9px] font-bold uppercase tracking-[0.5em]">EcoBank Internal Application Security</p>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-50">
-      <aside className="w-full md:w-64 bg-slate-900 text-white flex-shrink-0 flex flex-col h-screen overflow-y-auto border-r border-white/5">
+      <aside className="w-full md:w-64 bg-slate-950 text-white flex-shrink-0 flex flex-col h-screen overflow-y-auto border-r border-white/5">
         <div className="p-8 flex items-center gap-3 border-b border-white/10">
-          <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
             <i className="fas fa-university text-xl"></i>
           </div>
           <div>
@@ -164,11 +173,11 @@ const App: React.FC = () => {
         </nav>
 
         <div className="mt-auto p-4 border-t border-white/10">
-          <div className="bg-white/5 p-5 rounded-2xl backdrop-blur-sm border border-white/5">
+          <div className="bg-white/5 p-5 rounded-3xl backdrop-blur-sm border border-white/5 shadow-inner">
             <p className="text-sm font-black truncate text-white">{currentUser?.fullname}</p>
             <p className="text-[10px] text-cyan-400 uppercase font-black mb-4 tracking-widest">{currentUser?.role}</p>
-            <button onClick={handleLogout} className="w-full bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white py-3 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest border border-red-500/20">
-              Quitter la session
+            <button onClick={handleLogout} className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest border border-white/10">
+              Déconnexion
             </button>
           </div>
         </div>
@@ -207,8 +216,8 @@ const App: React.FC = () => {
 const NavItem = ({ active, icon, label, onClick }: any) => (
   <button 
     onClick={onClick}
-    className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 ${
-      active ? 'bg-blue-600 text-white shadow-[0_10px_20px_rgba(37,99,235,0.3)]' : 'text-slate-400 hover:text-white hover:bg-white/5'
+    className={`w-full flex items-center gap-4 px-5 py-4 rounded-[1.25rem] transition-all duration-300 ${
+      active ? 'bg-blue-600 text-white shadow-[0_15px_30px_rgba(37,99,235,0.4)] scale-105' : 'text-slate-500 hover:text-white hover:bg-white/10'
     }`}
   >
     <i className={`fas ${icon} text-lg w-6`}></i>
