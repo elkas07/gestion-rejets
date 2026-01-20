@@ -4731,33 +4731,26 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             document.getElementById('filter-date-from').valueAsDate = firstDay;
             document.getElementById('filter-date-to').valueAsDate = today;
             
-            // Logs
-            document.getElementById('log-date-from').valueAsDate = firstDay;
-            document.getElementById('log-date-to').valueAsDate = today;
-        }
+           // Logs
+document.getElementById('log-date-from').valueAsDate = firstDay;
+document.getElementById('log-date-to').valueAsDate = today;
+}   // <-- garde cette accolade, elle ferme setupEventListeners
 
-        // ============================================
-        // INITIALISATION
-        // ============================================
-        
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Initialiser Supabase - charger les utilisateurs
-            await loadUsersFromSupabase();
-            
-            // Charger les autres données
-            rejetsData = JSON.parse(localStorage.getItem('rejetsData')) || [];
-            activityLogs = JSON.parse(localStorage.getItem('activityLogs')) || [];
-            
-            setupEventListeners();
-            
-            // Initialiser les données si vides
-            if (rejetsData.length === 0) {
-                saveAllData();
-            }
-            
-            // Remplir l'email par défaut pour faciliter les tests
-            document.getElementById('loginEmail').value = 'sramadan@ecobank.com';
-        });
+// ============================================
+// INITIALISATION
+// ============================================
+
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadUsersFromSupabase();
+    rejetsData = JSON.parse(localStorage.getItem('rejetsData')) || [];
+    activityLogs = JSON.parse(localStorage.getItem('activityLogs')) || [];
+    setupEventListeners();
+    if (rejetsData.length === 0) {
+        saveAllData();
+    }
+    document.getElementById('loginEmail').value = 'sramadan@ecobank.com';
+});
+
     </script>
 </body>
 </html>
