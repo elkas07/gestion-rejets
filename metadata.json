@@ -1,0 +1,5 @@
+﻿{
+  "name": "EcoBank Rejection Management System",
+  "description": "Système de traçabilité des rejets OV/R/C EcoBank.",
+  "requestFramePermissions": ["camera"]
+}
