@@ -4479,6 +4479,48 @@ ${historiqueText}`);
         }
 
         // ============================================
+        // FONCTIONS D'AUTHENTIFICATION SUPABASE
+        // ============================================
+
+        async function authenticateUser(email, password, role) {
+            try {
+                // Chercher l'utilisateur dans Supabase
+                const { data: users, error } = await db
+                    .from('users')
+                    .select('*')
+                    .eq('email', email)
+                    .eq('role', role)
+                    .eq('status', 'active')
+                    .single();
+                
+                if (error) {
+                    console.error('Erreur authentification:', error);
+                    return null;
+                }
+                
+                if (!users) {
+                    return null;
+                }
+                
+                // Vérifier le mot de passe (dans une vraie app, on utiliserait le hashing)
+                // Pour la démo, on compare directement
+                if (users.password === password) {
+                    return users;
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('Erreur authentification:', error);
+                return null;
+            }
+        }
+
+        // ============================================
+        // FONCTIONS D'AFFICHAGE
+        // ============================================
+
+
+        // ============================================
         // GESTION DES ÉVÉNEMENTS
         // ============================================
         
