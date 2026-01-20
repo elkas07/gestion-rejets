@@ -1,33 +1,23 @@
-# EcoBank - Système de Gestion des Rejets (SGR)
+
+# EcoBank - Système de Gestion des Rejets (SGR) | v3.6 Platinum
 
 Application web professionnelle de gestion et de traçabilité des rejets d'opérations bancaires pour EcoBank.
 
-## 🚀 Fonctionnalités Implémentées
+## 🚀 Fonctionnalités Implémentées (v3.6)
 
-- **Tableau de Bord Analytique** : 
+- **Tableau de Bord Analytique Platinum** : 
   - Statistiques en temps réel (Aujourd'hui, Mois, Total).
-  - Répartition visuelle par **Type d'opération** (OV, RC, PC).
-  - Suivi de l'état d'avancement des dossiers.
+  - Répartition visuelle exclusive par **Type d'opération** (OV, RC).
+  - Interface optimisée avec animations fluides.
 - **Gestion des Types d'Opérations** :
   - **OV** (Ordre de Virement) - Badge Bleu.
-  - **RC** (Remise Chèque) - Badge Violet.
-  - **PC** (Prélèvement Chèque) - Badge Orange.
-- **Workflow de Validation** :
-  - Saisie par l'Agent OPS.
-  - Validation par le Superviseur.
-  - Confirmation par le Gestionnaire de Compte.
-- **Reporting & Data** :
-  - **Export CSV** : Génération instantanée de rapports pour Excel avec filtrage dynamique.
-  - **Export PDF** : Rapports de synthèse officiels EcoBank.
-- **Sécurité & Audit** :
-  - Journal d'activité (Logs) détaillé.
-  - Gestion des rôles et permissions.
-
-## 🛠️ Installation Locale
-
-1. Cloner le projet : `git clone <url-du-depot>`
-2. Ouvrir avec un serveur local.
-3. Configuration de la base de données via `services/supabase.ts`.
+  - **RC** (Remise Chèque) - Badge Purple.
+- **Workflow de Validation Sécurisé** :
+  - Saisie Agent OPS -> Validation Superviseur -> Transmission Gestionnaire.
+- **Reporting & Export** :
+  - Génération de rapports PDF professionnels aux couleurs d'EcoBank.
+- **Audit & Sécurité** :
+  - Journalisation complète des actions et gestion fine des accès.
 
 ---
 *Usage interne EcoBank - Direction des Opérations.*
