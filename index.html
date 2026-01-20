@@ -2075,49 +2075,32 @@ if (typeof supabase === 'undefined') {
         // Authentification avec Supabase
        async function authenticateUser(identifier, password, role) {
     try {
+        // On force le rôle en minuscules pour correspondre à la base (superviseur)
         const roleLower = role.toLowerCase();
 
-        // 1. Appel Supabase
         const { data, error } = await supabase
             .from('users')
             .select('*')
             .or(`email.eq.${identifier},username.eq.${identifier}`)
-            .eq('role', roleLower)
+            .eq('role', roleLower) // Cherchera 'superviseur' même si vous séléctionnez 'Superviseur'
             .single();
 
-        if (error) {
-            if (error.code === 'PGRST116') {
-                return { success: false, message: 'Identifiants ou rôle incorrects.' };
-            }
-            throw error;
+        if (error || !data) {
+            return { success: false, message: 'Identifiants ou rôle incorrects.' };
         }
 
-        if (!data) {
-            return { success: false, message: 'Utilisateur non trouvé.' };
-        }
-
-        // 2. Vérification du mot de passe
+        // Utilisation de password_hash qui est le nom réel dans votre table
         if (data.password_hash !== password) {
             return { success: false, message: 'Mot de passe incorrect.' };
         }
 
-        // 3. Retour des données
         return { 
             success: true, 
-            user: {
-                id: data.id,
-                username: data.username,
-                fullname: data.fullname,
-                email: data.email,
-                role: data.role,
-                permissions: data.permissions || [],
-                departement: data.departement
-            }
+            user: data 
         };
-
     } catch (error) {
-        console.error('Erreur d\'authentification:', error);
-        return { success: false, message: 'Erreur lors de l\'authentification.' };
+        console.error('Erreur:', error);
+        return { success: false, message: 'Erreur technique.' };
     }
 }
         // Mettre à jour le mot de passe d'un utilisateur
@@ -4751,7 +4734,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             // Logs
             document.getElementById('log-date-from').valueAsDate = firstDay;
             document.getElementById('log-date-to').valueAsDate = today;
-        
+        }
 
         // ============================================
         // INITIALISATION
