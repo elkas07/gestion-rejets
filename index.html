@@ -553,23 +553,6 @@
             font-size: 0.9rem;
         }
 
-        /* Change Password Link */
-        .change-password-link {
-            text-align: center;
-            margin-top: 15px;
-        }
-
-        .change-password-link a {
-            color: #3f51b5;
-            text-decoration: none;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-
-        .change-password-link a:hover {
-            text-decoration: underline;
-        }
-
         /* Rapport PDF Styles */
         .rapport-container {
             background: white;
@@ -639,7 +622,7 @@
             background: white;
             border-radius: 10px;
             width: 90%;
-            max-width: 500px;
+            max-width: 800px;
             max-height: 90vh;
             overflow-y: auto;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -912,6 +895,50 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Styles pour la modification de mot de passe */
+        .change-password-link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .change-password-link a {
+            color: #3f51b5;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .change-password-link a:hover {
+            text-decoration: underline;
+        }
+
+        .password-strength {
+            height: 5px;
+            margin-top: 5px;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+
+        .strength-weak {
+            background-color: #f44336;
+            width: 25%;
+        }
+
+        .strength-medium {
+            background-color: #ff9800;
+            width: 50%;
+        }
+
+        .strength-good {
+            background-color: #4caf50;
+            width: 75%;
+        }
+
+        .strength-strong {
+            background-color: #2e7d32;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -952,10 +979,10 @@
                         <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
                             <i class="fas fa-sign-in-alt"></i> Se connecter
                         </button>
+                        <div class="change-password-link">
+                            <a id="change-password-link" onclick="showChangePasswordModal()">Modifier mon mot de passe</a>
+                        </div>
                     </form>
-                    <div class="change-password-link">
-                        <a href="#" id="change-password-link">Modifier mon mot de passe</a>
-                    </div>
                     <div class="login-footer">
                         <p>Accès réservé au personnel autorisé</p>
                         <p><small>Version 3.0 - Administration complète</small></p>
@@ -1031,9 +1058,6 @@
                             <div class="page-title-actions">
                                 <button class="btn btn-secondary" id="quick-report">
                                     <i class="fas fa-file-pdf"></i> Rapport rapide
-                                </button>
-                                <button class="btn btn-info" id="change-password-app-btn">
-                                    <i class="fas fa-key"></i> Modifier mot de passe
                                 </button>
                             </div>
                         </h2>
@@ -1787,6 +1811,7 @@
                         <div class="form-group">
                             <label for="modal-password">Mot de passe *</label>
                             <input type="password" id="modal-password" class="form-control" required>
+                            <div id="password-strength" class="password-strength"></div>
                         </div>
                         <div class="form-group">
                             <label for="modal-confirm-password">Confirmer le mot de passe *</label>
@@ -1855,7 +1880,7 @@
     <div id="change-password-modal" class="modal-overlay" style="display: none;">
         <div class="modal">
             <div class="modal-header">
-                <h3 id="change-password-title">Modifier mon mot de passe</h3>
+                <h3>Modifier mon mot de passe</h3>
                 <button class="btn-icon" onclick="closeModal('change-password-modal')">
                     <i class="fas fa-times"></i>
                 </button>
@@ -1869,7 +1894,8 @@
                     <div class="form-group">
                         <label for="new-password">Nouveau mot de passe *</label>
                         <input type="password" id="new-password" class="form-control" required>
-                        <small style="color: #666;">Minimum 6 caractères</small>
+                        <div id="new-password-strength" class="password-strength"></div>
+                        <small>Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre.</small>
                     </div>
                     <div class="form-group">
                         <label for="confirm-new-password">Confirmer le nouveau mot de passe *</label>
@@ -1884,62 +1910,69 @@
         </div>
     </div>
 
-    <!-- Modal pour réinitialiser le mot de passe d'un utilisateur (admin) -->
-    <div id="reset-user-password-modal" class="modal-overlay" style="display: none;">
+    <!-- Modal pour réinitialiser le mot de passe (admin) -->
+    <div id="reset-password-modal" class="modal-overlay" style="display: none;">
         <div class="modal">
             <div class="modal-header">
                 <h3 id="reset-password-title">Réinitialiser le mot de passe</h3>
-                <button class="btn-icon" onclick="closeModal('reset-user-password-modal')">
+                <button class="btn-icon" onclick="closeModal('reset-password-modal')">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
-                <form id="reset-user-password-form">
+                <form id="reset-password-form">
                     <input type="hidden" id="reset-user-id">
                     <div class="form-group">
-                        <label for="reset-user-email">Email de l'utilisateur</label>
-                        <input type="email" id="reset-user-email" class="form-control" readonly>
+                        <label for="reset-user-info">Utilisateur</label>
+                        <input type="text" id="reset-user-info" class="form-control" readonly>
                     </div>
                     <div class="form-group">
-                        <label for="reset-user-name">Nom de l'utilisateur</label>
-                        <input type="text" id="reset-user-name" class="form-control" readonly>
+                        <label for="reset-new-password">Nouveau mot de passe *</label>
+                        <input type="password" id="reset-new-password" class="form-control" required>
+                        <div id="reset-password-strength" class="password-strength"></div>
+                        <small>Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre.</small>
                     </div>
                     <div class="form-group">
-                        <label for="new-password-admin">Nouveau mot de passe *</label>
-                        <input type="password" id="new-password-admin" class="form-control" required>
-                        <small style="color: #666;">Minimum 6 caractères</small>
+                        <label for="reset-confirm-password">Confirmer le nouveau mot de passe *</label>
+                        <input type="password" id="reset-confirm-password" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label for="confirm-new-password-admin">Confirmer le nouveau mot de passe *</label>
-                        <input type="password" id="confirm-new-password-admin" class="form-control" required>
+                        <label>
+                            <input type="checkbox" id="force-password-change">
+                            <span>Forcer l'utilisateur à changer son mot de passe à la prochaine connexion</span>
+                        </label>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('reset-user-password-modal')">Annuler</button>
-                <button class="btn btn-primary" id="reset-password-btn">Réinitialiser</button>
+                <button class="btn btn-secondary" onclick="closeModal('reset-password-modal')">Annuler</button>
+                <button class="btn btn-primary" id="confirm-reset-password-btn">Réinitialiser</button>
             </div>
         </div>
     </div>
 
     <script>
-// ============================================
-// INITIALISATION SUPABASE (CORRIGÉE)
-// ============================================
-// On utilise 'var' ici car contrairement à 'const', 'var' permet 
-// de redéclarer sans bloquer le script si le fichier est chargé deux fois.
-var supabaseUrl = 'https://qldfjdmpzvyhgsmepynp.supabase.co';
-var supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsZGZqZG1wenZ5aGdzbWVweW5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0OTU3NTEsImV4cCI6MjA4NDA3MTc1MX0.xAm9RrmzMCuxMfu4xjygPZMyiNbJqSXH9L_GNegbiBI';
+        // ============================================
+        // INITIALISATION SÉCURISÉE (SANS REDÉCLARATION)
+        // ============================================
 
-// On vérifie si 'supabase' est déjà défini globalement pour ne pas écraser la connexion
-if (typeof supabase === 'undefined') {
-    var supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-} else {
-    // Si déjà déclaré ailleurs, on s'assure qu'il est bien initialisé
-    if (!supabase.auth) { 
-        supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-    }
-}
+        // On utilise 'var' au lieu de 'let/const' pour éviter l'erreur "already declared"
+        var supabaseUrl = 'https://qldfjdmpzvyhgsmepynp.supabase.co';
+        var supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsZGZqZG1wenZ5aGdzbWVweW5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0OTU3NTEsImV4cCI6MjA4NDA3MTc1MX0.xAm9RrmzMCuxMfu4xjygPZMyiNbJqSXH9L_GNegbiBI';
+
+        // On utilise window.maConnexion pour être certain de ne pas toucher à la variable 'supabase' qui bloque
+        try {
+            if (!window.maConnexion) {
+                window.maConnexion = window.supabase.createClient(supabaseUrl, supabaseKey);
+                console.log('Connexion établie avec succès');
+            }
+        } catch (e) {
+            console.error('Erreur initialisation:', e);
+        }
+
+        // Pour la suite de votre code, on crée un raccourci local
+        var db = window.maConnexion;
+
         // Configuration système
         let systemConfig = JSON.parse(localStorage.getItem('systemConfig')) || {
             security: {
@@ -1966,8 +1999,7 @@ if (typeof supabase === 'undefined') {
 
         // Gestion des utilisateurs - Chargement depuis Supabase
         let usersData = [];
-        let rejetsData = [];
-        let activityLogs = [];
+        let rejetsData = JSON.parse(localStorage.getItem('rejetsData')) || [];
 
         // Configuration des options de saisie
         let saisieConfig = JSON.parse(localStorage.getItem('saisieConfig')) || {
@@ -2007,6 +2039,9 @@ if (typeof supabase === 'undefined') {
             ]
         };
 
+        // Journal d'activité
+        let activityLogs = JSON.parse(localStorage.getItem('activityLogs')) || [];
+
         // État de l'application
         let currentUser = null;
         let currentLanguage = 'fr';
@@ -2016,205 +2051,6 @@ if (typeof supabase === 'undefined') {
         let currentPageRejets = 1;
         let rowsPerPage = 25;
         let filteredRejetsList = [];
-
-        // ============================================
-        // FONCTIONS SUPABASE
-        // ============================================
-        
-        // Charger les utilisateurs depuis Supabase
-        async function loadUsersFromSupabase() {
-            try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-                
-                if (error) throw error;
-                
-                if (data && data.length > 0) {
-                    usersData = data;
-                } else {
-                    // Si la table est vide, créer l'utilisateur admin par défaut
-                    await createDefaultAdmin();
-                }
-            } catch (error) {
-                console.error('Erreur lors du chargement des utilisateurs:', error);
-                // En cas d'erreur, utiliser les données locales
-                usersData = JSON.parse(localStorage.getItem('usersData')) || [];
-            }
-        }
-
-        // Créer l'utilisateur admin par défaut
-        async function createDefaultAdmin() {
-            try {
-                const defaultAdmin = {
-                    username: 'sramadan',
-                    fullname: 'Soumaïla Ramadan',
-                    password: 'sramadan123', // Mot de passe par défaut
-                    email: 'sramadan@ecobank.com',
-                    role: 'superviseur',
-                    departement: 'corporate',
-                    status: 'active',
-                    permissions: ['export', 'reports', 'view_all'],
-                    created_at: new Date().toISOString().split('T')[0]
-                };
-                
-                const { data, error } = await supabase
-                    .from('users')
-                    .insert([defaultAdmin]);
-                
-                if (error) throw error;
-                
-                // Recharger les utilisateurs
-                await loadUsersFromSupabase();
-            } catch (error) {
-                console.error('Erreur lors de la création de l\'admin par défaut:', error);
-            }
-        }
-
-        // Authentification avec Supabase
-       async function authenticateUser(identifier, password, role) {
-    try {
-        // On force le rôle en minuscules pour correspondre à la base (superviseur)
-        const roleLower = role.toLowerCase();
-
-        const { data, error } = await supabase
-            .from('users')
-            .select('*')
-            .or(`email.eq.${identifier},username.eq.${identifier}`)
-            .eq('role', roleLower) // Cherchera 'superviseur' même si vous séléctionnez 'Superviseur'
-            .single();
-
-        if (error || !data) {
-            return { success: false, message: 'Identifiants ou rôle incorrects.' };
-        }
-
-        // Utilisation de password_hash qui est le nom réel dans votre table
-        if (data.password_hash !== password) {
-            return { success: false, message: 'Mot de passe incorrect.' };
-        }
-
-        return { 
-            success: true, 
-            user: data 
-        };
-    } catch (error) {
-        console.error('Erreur:', error);
-        return { success: false, message: 'Erreur technique.' };
-    }
-}
-        // Mettre à jour le mot de passe d'un utilisateur
-        async function updateUserPassword(userId, newPassword) {
-            try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .update({ password: newPassword })
-                    .eq('id', userId);
-                
-                if (error) throw error;
-                
-                return { success: true, message: 'Mot de passe mis à jour avec succès.' };
-            } catch (error) {
-                console.error('Erreur lors de la mise à jour du mot de passe:', error);
-                return { success: false, message: 'Erreur lors de la mise à jour du mot de passe.' };
-            }
-        }
-
-        // Réinitialiser le mot de passe d'un utilisateur (admin)
-        async function resetUserPassword(userId, newPassword) {
-            try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .update({ password: newPassword })
-                    .eq('id', userId);
-                
-                if (error) throw error;
-                
-                return { success: true, message: 'Mot de passe réinitialisé avec succès.' };
-            } catch (error) {
-                console.error('Erreur lors de la réinitialisation du mot de passe:', error);
-                return { success: false, message: 'Erreur lors de la réinitialisation du mot de passe.' };
-            }
-        }
-
-        // Ajouter un nouvel utilisateur
-        async function addNewUser(userData) {
-            try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .insert([userData]);
-                
-                if (error) throw error;
-                
-                // Recharger les utilisateurs
-                await loadUsersFromSupabase();
-                
-                return { success: true, message: 'Utilisateur créé avec succès.' };
-            } catch (error) {
-                console.error('Erreur lors de l\'ajout de l\'utilisateur:', error);
-                return { success: false, message: 'Erreur lors de la création de l\'utilisateur.' };
-            }
-        }
-
-        // Mettre à jour un utilisateur
-        async function updateUser(userId, userData) {
-            try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .update(userData)
-                    .eq('id', userId);
-                
-                if (error) throw error;
-                
-                // Recharger les utilisateurs
-                await loadUsersFromSupabase();
-                
-                return { success: true, message: 'Utilisateur mis à jour avec succès.' };
-            } catch (error) {
-                console.error('Erreur lors de la mise à jour de l\'utilisateur:', error);
-                return { success: false, message: 'Erreur lors de la mise à jour de l\'utilisateur.' };
-            }
-        }
-
-        // Changer le statut d'un utilisateur
-        async function toggleUserStatusSupabase(userId, newStatus) {
-            try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .update({ status: newStatus })
-                    .eq('id', userId);
-                
-                if (error) throw error;
-                
-                // Recharger les utilisateurs
-                await loadUsersFromSupabase();
-                
-                return { success: true, message: 'Statut utilisateur mis à jour avec succès.' };
-            } catch (error) {
-                console.error('Erreur lors du changement de statut:', error);
-                return { success: false, message: 'Erreur lors du changement de statut.' };
-            }
-        }
-
-        // Supprimer un utilisateur
-        async function deleteUserSupabase(userId) {
-            try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .delete()
-                    .eq('id', userId);
-                
-                if (error) throw error;
-                
-                // Recharger les utilisateurs
-                await loadUsersFromSupabase();
-                
-                return { success: true, message: 'Utilisateur supprimé avec succès.' };
-            } catch (error) {
-                console.error('Erreur lors de la suppression de l\'utilisateur:', error);
-                return { success: false, message: 'Erreur lors de la suppression de l\'utilisateur.' };
-            }
-        }
 
         // ============================================
         // FONCTIONS UTILITAIRES
@@ -2227,17 +2063,30 @@ if (typeof supabase === 'undefined') {
             localStorage.setItem('activityLogs', JSON.stringify(activityLogs));
         }
 
-        function addLog(level, action, details) {
+        async function addLog(level, action, details) {
             const log = {
-                id: activityLogs.length > 0 ? Math.max(...activityLogs.map(l => l.id)) + 1 : 1,
                 timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
                 level: level,
                 user: currentUser ? currentUser.username : 'system',
                 action: action,
                 details: details,
-                ip: '127.0.0.1' // Dans une vraie app, on récupérerait l'IP réelle
+                ip: '127.0.0.1'
             };
+            
+            // Sauvegarder en local
             activityLogs.push(log);
+            
+            // Sauvegarder dans Supabase
+            try {
+                const { error } = await db
+                    .from('activity_logs')
+                    .insert([log]);
+                
+                if (error) throw error;
+            } catch (error) {
+                console.error('Erreur sauvegarde log:', error);
+            }
+            
             saveAllData();
         }
 
@@ -2302,117 +2151,221 @@ if (typeof supabase === 'undefined') {
             return null;
         }
 
-        // ============================================
-        // FONCTIONS POUR LA GESTION DES MOTS DE PASSE
-        // ============================================
-        
-        function openChangePasswordModal() {
-            document.getElementById('change-password-form').reset();
-            document.getElementById('change-password-title').textContent = 'Modifier mon mot de passe';
-            showModal('change-password-modal');
+        function checkPasswordStrength(password) {
+            if (!password) return 0;
+            
+            let strength = 0;
+            
+            // Longueur
+            if (password.length >= 8) strength += 1;
+            if (password.length >= 12) strength += 1;
+            
+            // Complexité
+            if (/[a-z]/.test(password)) strength += 1; // minuscule
+            if (/[A-Z]/.test(password)) strength += 1; // majuscule
+            if (/[0-9]/.test(password)) strength += 1; // chiffre
+            if (/[^a-zA-Z0-9]/.test(password)) strength += 1; // caractère spécial
+            
+            return strength;
         }
 
-        function openResetUserPasswordModal(userId) {
-            const user = usersData.find(u => u.id === userId);
-            if (user) {
-                document.getElementById('reset-user-id').value = userId;
-                document.getElementById('reset-user-email').value = user.email;
-                document.getElementById('reset-user-name').value = user.fullname;
-                document.getElementById('reset-user-password-form').reset();
-                document.getElementById('reset-password-title').textContent = `Réinitialiser le mot de passe de ${user.fullname}`;
-                showModal('reset-user-password-modal');
+        function updatePasswordStrength(password, strengthElementId) {
+            const strength = checkPasswordStrength(password);
+            const strengthElement = document.getElementById(strengthElementId);
+            
+            strengthElement.className = 'password-strength';
+            
+            if (password.length === 0) {
+                return;
+            }
+            
+            if (strength <= 2) {
+                strengthElement.className += ' strength-weak';
+            } else if (strength <= 4) {
+                strengthElement.className += ' strength-medium';
+            } else if (strength <= 6) {
+                strengthElement.className += ' strength-good';
+            } else {
+                strengthElement.className += ' strength-strong';
             }
         }
 
-        async function changePassword() {
-            const currentPassword = document.getElementById('current-password').value;
-            const newPassword = document.getElementById('new-password').value;
-            const confirmPassword = document.getElementById('confirm-new-password').value;
-            
-            // Validation
-            if (!currentPassword || !newPassword || !confirmPassword) {
-                alert('Veuillez remplir tous les champs.');
-                return;
-            }
-            
-            if (newPassword.length < 6) {
-                alert('Le nouveau mot de passe doit contenir au moins 6 caractères.');
-                return;
-            }
-            
-            if (newPassword !== confirmPassword) {
-                alert('Les nouveaux mots de passe ne correspondent pas.');
-                return;
-            }
-            
-            // Vérifier l'ancien mot de passe
+        // ============================================
+        // FONCTIONS D'AUTHENTIFICATION SUPABASE
+        // ============================================
+
+        async function authenticateUser(email, password, role) {
             try {
-                const { data, error } = await supabase
+                // Chercher l'utilisateur dans Supabase
+                const { data: users, error } = await db
                     .from('users')
-                    .select('password')
-                    .eq('id', currentUser.id)
+                    .select('*')
+                    .eq('email', email)
+                    .eq('role', role)
+                    .eq('status', 'active')
                     .single();
+                
+                if (error) {
+                    console.error('Erreur authentification:', error);
+                    return null;
+                }
+                
+                if (!users) {
+                    return null;
+                }
+                
+                // Vérifier le mot de passe (dans une vraie app, on utiliserait le hashing)
+                // Pour la démo, on compare directement
+                if (users.password === password) {
+                    return users;
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('Erreur authentification:', error);
+                return null;
+            }
+        }
+
+        async function loadUsersFromSupabase() {
+            try {
+                const { data: users, error } = await db
+                    .from('users')
+                    .select('*')
+                    .order('created_at', { ascending: false });
                 
                 if (error) throw error;
                 
-                if (data.password !== currentPassword) {
-                    alert('Le mot de passe actuel est incorrect.');
-                    return;
+                usersData = users || [];
+                
+                // Si pas d'utilisateurs, créer l'admin par défaut
+                if (usersData.length === 0) {
+                    await createDefaultAdmin();
+                    await loadUsersFromSupabase();
                 }
                 
-                // Mettre à jour le mot de passe
-                const result = await updateUserPassword(currentUser.id, newPassword);
-                
-                if (result.success) {
-                    alert('Mot de passe modifié avec succès !');
-                    closeModal('change-password-modal');
-                    addLog('info', 'Changement mot de passe', `Utilisateur ${currentUser.username} a changé son mot de passe`);
-                } else {
-                    alert('Erreur lors de la modification du mot de passe: ' + result.message);
-                }
-                
+                return usersData;
             } catch (error) {
-                console.error('Erreur:', error);
-                alert('Erreur lors de la vérification du mot de passe actuel.');
+                console.error('Erreur chargement utilisateurs:', error);
+                return [];
             }
         }
 
-        async function resetUserPasswordAdmin() {
-            const userId = document.getElementById('reset-user-id').value;
-            const newPassword = document.getElementById('new-password-admin').value;
-            const confirmPassword = document.getElementById('confirm-new-password-admin').value;
-            
-            // Validation
-            if (!newPassword || !confirmPassword) {
-                alert('Veuillez remplir tous les champs.');
-                return;
+        async function createDefaultAdmin() {
+            try {
+                const adminUser = {
+                    username: 'sramadan',
+                    fullname: 'Soumaïla Ramadan',
+                    password: 'sramadan123',
+                    email: 'sramadan@ecobank.com',
+                    role: 'superviseur',
+                    departement: 'corporate',
+                    status: 'active',
+                    permissions: ['export', 'reports', 'view_all'],
+                    created_at: new Date().toISOString().split('T')[0]
+                };
+                
+                const { error } = await db
+                    .from('users')
+                    .insert([adminUser]);
+                
+                if (error) throw error;
+                
+                console.log('Admin par défaut créé');
+            } catch (error) {
+                console.error('Erreur création admin:', error);
             }
-            
-            if (newPassword.length < 6) {
-                alert('Le nouveau mot de passe doit contenir au moins 6 caractères.');
-                return;
+        }
+
+        async function updateUserPassword(userId, newPassword) {
+            try {
+                const { error } = await db
+                    .from('users')
+                    .update({ 
+                        password: newPassword,
+                        last_password_change: new Date().toISOString()
+                    })
+                    .eq('id', userId);
+                
+                if (error) throw error;
+                
+                // Mettre à jour le cache local
+                const userIndex = usersData.findIndex(u => u.id === userId);
+                if (userIndex !== -1) {
+                    usersData[userIndex].password = newPassword;
+                    usersData[userIndex].last_password_change = new Date().toISOString();
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Erreur mise à jour mot de passe:', error);
+                return false;
             }
-            
-            if (newPassword !== confirmPassword) {
-                alert('Les nouveaux mots de passe ne correspondent pas.');
-                return;
+        }
+
+        async function resetUserPassword(userId, newPassword, forceChange = false) {
+            try {
+                const updateData = { 
+                    password: newPassword,
+                    last_password_change: new Date().toISOString()
+                };
+                
+                if (forceChange) {
+                    updateData.force_password_change = true;
+                }
+                
+                const { error } = await db
+                    .from('users')
+                    .update(updateData)
+                    .eq('id', userId);
+                
+                if (error) throw error;
+                
+                // Mettre à jour le cache local
+                const userIndex = usersData.findIndex(u => u.id === userId);
+                if (userIndex !== -1) {
+                    usersData[userIndex].password = newPassword;
+                    usersData[userIndex].last_password_change = new Date().toISOString();
+                    if (forceChange) {
+                        usersData[userIndex].force_password_change = true;
+                    }
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Erreur réinitialisation mot de passe:', error);
+                return false;
             }
-            
-            // Réinitialiser le mot de passe
-            const result = await resetUserPassword(userId, newPassword);
-            
-            if (result.success) {
-                alert('Mot de passe réinitialisé avec succès !');
-                closeModal('reset-user-password-modal');
-                addLog('security', 'Réinitialisation mot de passe', 
-                      `Admin ${currentUser.username} a réinitialisé le mot de passe de l'utilisateur ID: ${userId}`);
-            } else {
-                alert('Erreur lors de la réinitialisation du mot de passe: ' + result.message);
+        }
+
+        async function saveUserToSupabase(userData, isNew = false) {
+            try {
+                if (isNew) {
+                    const { error } = await db
+                        .from('users')
+                        .insert([userData]);
+                    
+                    if (error) throw error;
+                } else {
+                    const { error } = await db
+                        .from('users')
+                        .update(userData)
+                        .eq('id', userData.id);
+                    
+                    if (error) throw error;
+                }
+                
+                // Recharger les utilisateurs
+                await loadUsersFromSupabase();
+                return true;
+            } catch (error) {
+                console.error('Erreur sauvegarde utilisateur:', error);
+                return false;
             }
         }
 
         // ============================================
-        // FONCTIONS D'AFFICHAGE (inchangées)
+        // FONCTIONS D'AFFICHAGE
         // ============================================
         
         function showPage(pageId) {
@@ -3385,10 +3338,7 @@ if (typeof supabase === 'undefined') {
             const tbody = document.getElementById('users-table-body');
             tbody.innerHTML = '';
             
-            // S'assurer que les utilisateurs sont chargés
-            if (usersData.length === 0) {
-                await loadUsersFromSupabase();
-            }
+            await loadUsersFromSupabase();
             
             usersData.forEach(user => {
                 const row = document.createElement('tr');
@@ -3411,11 +3361,11 @@ if (typeof supabase === 'undefined') {
                         <button class="btn-icon" onclick="editUser(${user.id})" title="Modifier">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn-icon" onclick="openResetUserPasswordModal(${user.id})" title="Réinitialiser mot de passe">
-                            <i class="fas fa-key"></i>
-                        </button>
                         <button class="btn-icon" onclick="toggleUserStatus(${user.id})" title="${user.status === 'active' ? 'Suspendre' : 'Activer'}">
                             <i class="fas fa-${user.status === 'active' ? 'pause' : 'play'}"></i>
+                        </button>
+                        <button class="btn-icon" onclick="resetUserPasswordPrompt(${user.id}, '${user.username}')" title="Réinitialiser mot de passe">
+                            <i class="fas fa-key"></i>
                         </button>
                         ${user.username !== currentUser.username ? `
                         <button class="btn-icon" onclick="deleteUser(${user.id})" title="Supprimer" style="color: #f44336;">
@@ -3671,6 +3621,22 @@ if (typeof supabase === 'undefined') {
             showModal('user-modal');
         }
 
+        function showChangePasswordModal() {
+            const modal = document.getElementById('change-password-modal');
+            const form = document.getElementById('change-password-form');
+            form.reset();
+            showModal('change-password-modal');
+        }
+
+        function resetUserPasswordPrompt(userId, username) {
+            const modal = document.getElementById('reset-password-modal');
+            document.getElementById('reset-user-id').value = userId;
+            document.getElementById('reset-user-info').value = username;
+            document.getElementById('reset-password-title').textContent = `Réinitialiser le mot de passe - ${username}`;
+            document.getElementById('reset-password-form').reset();
+            showModal('reset-password-modal');
+        }
+
         // ============================================
         // FONCTIONS POUR LES ACTIONS
         // ============================================
@@ -3886,15 +3852,22 @@ ${historiqueText}`);
                     `Voulez-vous réactiver l'accès de ${user.username} ?`;
                 
                 if (confirm(message)) {
-                    const result = await toggleUserStatusSupabase(userId, newStatus);
-                    
-                    if (result.success) {
+                    try {
+                        const { error } = await db
+                            .from('users')
+                            .update({ status: newStatus })
+                            .eq('id', userId);
+                        
+                        if (error) throw error;
+                        
+                        user.status = newStatus;
                         addLog('security', 'Modification utilisateur', 
                               `Statut de ${user.username} changé en ${newStatus} par ${currentUser.username}`);
                         await loadUsersTab();
                         alert(`Utilisateur ${user.username} ${newStatus === 'active' ? 'activé' : 'suspendu'} avec succès.`);
-                    } else {
-                        alert('Erreur lors du changement de statut: ' + result.message);
+                    } catch (error) {
+                        console.error('Erreur mise à jour statut:', error);
+                        alert('Erreur lors de la mise à jour du statut.');
                     }
                 }
             }
@@ -3909,15 +3882,22 @@ ${historiqueText}`);
                         return;
                     }
                     
-                    const result = await deleteUserSupabase(userId);
-                    
-                    if (result.success) {
+                    try {
+                        const { error } = await db
+                            .from('users')
+                            .delete()
+                            .eq('id', userId);
+                        
+                        if (error) throw error;
+                        
+                        usersData = usersData.filter(u => u.id !== userId);
                         addLog('security', 'Suppression utilisateur', 
                               `Utilisateur ${user.username} supprimé par ${currentUser.username}`);
                         await loadUsersTab();
                         alert('Utilisateur supprimé avec succès.');
-                    } else {
-                        alert('Erreur lors de la suppression: ' + result.message);
+                    } catch (error) {
+                        console.error('Erreur suppression utilisateur:', error);
+                        alert('Erreur lors de la suppression de l\'utilisateur.');
                     }
                 }
             }
@@ -3930,68 +3910,161 @@ ${historiqueText}`);
             const confirmPassword = document.getElementById('modal-confirm-password').value;
             
             // Validation
-            if (!userId && (!password || !confirmPassword)) {
-                alert('Le mot de passe est obligatoire pour un nouvel utilisateur.');
-                return;
-            }
-            
             if (password && password !== confirmPassword) {
                 alert('Les mots de passe ne correspondent pas.');
                 return;
             }
             
-            if (password && password.length < 6) {
-                alert('Le mot de passe doit contenir au moins 6 caractères.');
+            if (password && checkPasswordStrength(password) < 4) {
+                alert('Le mot de passe est trop faible. Il doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre.');
                 return;
             }
             
-            const userData = {
-                username: document.getElementById('modal-username').value,
-                fullname: document.getElementById('modal-fullname').value,
-                email: document.getElementById('modal-email').value,
-                role: document.getElementById('modal-role').value,
-                departement: document.getElementById('modal-departement').value,
-                status: document.getElementById('modal-status').value,
-                permissions: []
-            };
-            
-            // Permissions
-            if (document.getElementById('permission-export').checked) userData.permissions.push('export');
-            if (document.getElementById('permission-reports').checked) userData.permissions.push('reports');
-            if (document.getElementById('permission-view-all').checked) userData.permissions.push('view_all');
-            
-            if (password) {
-                userData.password = password;
-            }
+            let userData;
             
             if (userId) {
                 // Mise à jour
-                const result = await updateUser(parseInt(userId), userData);
-                
-                if (result.success) {
-                    addLog('info', 'Mise à jour utilisateur', 
-                          `Utilisateur ${userData.username} mis à jour par ${currentUser.username}`);
-                    alert('Utilisateur mis à jour avec succès.');
-                } else {
-                    alert('Erreur lors de la mise à jour: ' + result.message);
+                const user = usersData.find(u => u.id === parseInt(userId));
+                if (user) {
+                    userData = {
+                        id: parseInt(userId),
+                        username: document.getElementById('modal-username').value,
+                        fullname: document.getElementById('modal-fullname').value,
+                        email: document.getElementById('modal-email').value,
+                        role: document.getElementById('modal-role').value,
+                        departement: document.getElementById('modal-departement').value,
+                        status: document.getElementById('modal-status').value
+                    };
+                    
+                    if (password) {
+                        userData.password = password;
+                        userData.last_password_change = new Date().toISOString();
+                    }
+                    
+                    // Permissions
+                    const permissions = [];
+                    if (document.getElementById('permission-export').checked) permissions.push('export');
+                    if (document.getElementById('permission-reports').checked) permissions.push('reports');
+                    if (document.getElementById('permission-view-all').checked) permissions.push('view_all');
+                    userData.permissions = permissions;
+                    
+                    const success = await saveUserToSupabase(userData, false);
+                    if (success) {
+                        addLog('info', 'Mise à jour utilisateur', 
+                              `Utilisateur ${userData.username} mis à jour par ${currentUser.username}`);
+                    }
                 }
             } else {
                 // Création
-                userData.created_at = new Date().toISOString().split('T')[0];
+                if (!password) {
+                    alert('Le mot de passe est requis pour un nouvel utilisateur.');
+                    return;
+                }
                 
-                const result = await addNewUser(userData);
+                userData = {
+                    username: document.getElementById('modal-username').value,
+                    fullname: document.getElementById('modal-fullname').value,
+                    password: password,
+                    email: document.getElementById('modal-email').value,
+                    role: document.getElementById('modal-role').value,
+                    departement: document.getElementById('modal-departement').value,
+                    status: document.getElementById('modal-status').value,
+                    permissions: [],
+                    created_at: new Date().toISOString().split('T')[0],
+                    last_password_change: new Date().toISOString()
+                };
                 
-                if (result.success) {
+                // Permissions
+                if (document.getElementById('permission-export').checked) userData.permissions.push('export');
+                if (document.getElementById('permission-reports').checked) userData.permissions.push('reports');
+                if (document.getElementById('permission-view-all').checked) userData.permissions.push('view_all');
+                
+                const success = await saveUserToSupabase(userData, true);
+                if (success) {
                     addLog('info', 'Création utilisateur', 
                           `Nouvel utilisateur ${userData.username} créé par ${currentUser.username}`);
-                    alert('Utilisateur créé avec succès.');
-                } else {
-                    alert('Erreur lors de la création: ' + result.message);
                 }
             }
             
             closeModal('user-modal');
             await loadUsersTab();
+            alert('Utilisateur enregistré avec succès.');
+        }
+
+        async function changePassword() {
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmNewPassword = document.getElementById('confirm-new-password').value;
+            
+            // Validation
+            if (!currentPassword || !newPassword || !confirmNewPassword) {
+                alert('Tous les champs sont obligatoires.');
+                return;
+            }
+            
+            if (newPassword !== confirmNewPassword) {
+                alert('Les nouveaux mots de passe ne correspondent pas.');
+                return;
+            }
+            
+            if (checkPasswordStrength(newPassword) < 4) {
+                alert('Le nouveau mot de passe est trop faible. Il doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre.');
+                return;
+            }
+            
+            // Vérifier l'ancien mot de passe
+            if (currentUser.password !== currentPassword) {
+                alert('Le mot de passe actuel est incorrect.');
+                return;
+            }
+            
+            // Mettre à jour le mot de passe
+            const success = await updateUserPassword(currentUser.id, newPassword);
+            
+            if (success) {
+                addLog('security', 'Changement mot de passe', 
+                      `Mot de passe changé par ${currentUser.username}`);
+                closeModal('change-password-modal');
+                alert('Mot de passe changé avec succès !');
+            } else {
+                alert('Erreur lors du changement de mot de passe.');
+            }
+        }
+
+        async function resetPassword() {
+            const userId = document.getElementById('reset-user-id').value;
+            const newPassword = document.getElementById('reset-new-password').value;
+            const confirmPassword = document.getElementById('reset-confirm-password').value;
+            const forceChange = document.getElementById('force-password-change').checked;
+            
+            // Validation
+            if (!newPassword || !confirmPassword) {
+                alert('Tous les champs sont obligatoires.');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                alert('Les mots de passe ne correspondent pas.');
+                return;
+            }
+            
+            if (checkPasswordStrength(newPassword) < 4) {
+                alert('Le mot de passe est trop faible. Il doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre.');
+                return;
+            }
+            
+            // Réinitialiser le mot de passe
+            const success = await resetUserPassword(userId, newPassword, forceChange);
+            
+            if (success) {
+                const user = usersData.find(u => u.id === parseInt(userId));
+                addLog('security', 'Réinitialisation mot de passe', 
+                      `Mot de passe réinitialisé pour ${user.username} par ${currentUser.username}`);
+                closeModal('reset-password-modal');
+                alert('Mot de passe réinitialisé avec succès !');
+            } else {
+                alert('Erreur lors de la réinitialisation du mot de passe.');
+            }
         }
 
         function saveConfig() {
@@ -4147,7 +4220,7 @@ ${historiqueText}`);
                         saisieConfig.departements.splice(index, 1);
                         addLog('info', 'Configuration saisie', `Département supprimé: ${dept}`);
                         break;
-                    case 'motif':
+                case 'motif':
                         const motif = saisieConfig.motifs[index];
                         saisieConfig.motifs.splice(index, 1);
                         addLog('info', 'Configuration saisie', `Motif supprimé: ${motif}`);
@@ -4406,50 +4479,71 @@ ${historiqueText}`);
         }
 
         // ============================================
-// GESTIONNAIRE DE CONNEXION CORRIGÉ
-// ============================================
-document.getElementById('loginForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    
-    // CORRECTION : On force le rôle en minuscules pour correspondre à la base de données
-    const role = document.getElementById('loginRole').value.toLowerCase(); 
-    
-    const language = document.getElementById('loginLanguage').value;
-    
-    // Authentification avec Supabase
-    const authResult = await authenticateUser(email, password, role);
-    
-    if (authResult.success) {
-        currentUser = authResult.user;
-        currentLanguage = language;
+        // GESTION DES ÉVÉNEMENTS
+        // ============================================
         
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('main-app').style.display = 'block';
-        
-        // On affiche le rôle avec la première lettre en majuscule pour faire joli dans l'interface
-        const roleDisplay = currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1);
-        document.getElementById('current-user').textContent = `${currentUser.fullname} (${roleDisplay})`;
-        document.getElementById('current-agent').textContent = currentUser.fullname;
-        document.getElementById('language-switcher').value = language;
-        
-        // Afficher/masquer les menus selon le rôle (on vérifie en minuscules)
-        if (currentUser.role === 'superviseur' || currentUser.role === 'gestionnaire') {
-            document.getElementById('validation-nav').style.display = 'flex';
-        }
-        if (currentUser.role === 'superviseur') {
-            document.getElementById('admin-nav').style.display = 'flex';
-        }
-        
-        addLog('info', 'Connexion', `Connexion réussie pour ${currentUser.username}`);
-        showPage('dashboard');
-    } else {
-        alert(authResult.message);
-        addLog('warning', 'Tentative connexion', `Échec connexion pour ${email}`);
-    }
-});
+        function setupEventListeners() {
+            // Connexion
+            document.getElementById('loginForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                const role = document.getElementById('loginRole').value;
+                const language = document.getElementById('loginLanguage').value;
+                
+                // Authentifier avec Supabase
+                const user = await authenticateUser(email, password, role);
+                
+                if (user) {
+                    currentUser = {
+                        id: user.id,
+                        username: user.username,
+                        fullname: user.fullname,
+                        role: user.role,
+                        permissions: user.permissions || [],
+                        language: language,
+                        password: password // Stocker temporairement pour la vérification
+                    };
+                    
+                    // Sauvegarder la langue
+                    currentLanguage = language;
+                    
+                    // Vérifier si le mot de passe doit être changé
+                    if (user.force_password_change) {
+                        alert('Votre mot de passe doit être changé avant de continuer.');
+                        showChangePasswordModal();
+                        return;
+                    }
+                    
+                    // Cacher login, afficher app
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('main-app').style.display = 'block';
+                    
+                    // Mettre à jour l'interface utilisateur
+                    document.getElementById('current-user').textContent = `${user.fullname} (${user.role})`;
+                    document.getElementById('current-agent').textContent = user.fullname;
+                    document.getElementById('language-switcher').value = language;
+                    
+                    // Afficher/masquer les menus selon le rôle
+                    if (user.role === 'superviseur' || user.role === 'gestionnaire') {
+                        document.getElementById('validation-nav').style.display = 'flex';
+                    }
+                    if (user.role === 'superviseur') {
+                        document.getElementById('admin-nav').style.display = 'flex';
+                    }
+                    
+                    // Ajouter un log
+                    addLog('info', 'Connexion', `Connexion réussie pour ${user.username}`);
+                    
+                    // Afficher le dashboard
+                    showPage('dashboard');
+                } else {
+                    alert('Identifiants incorrects ou compte désactivé.');
+                    addLog('warning', 'Tentative connexion', `Échec connexion pour ${email}`);
+                }
+            });
+            
             // Déconnexion
             document.getElementById('logout-btn').addEventListener('click', function() {
                 addLog('info', 'Déconnexion', `Déconnexion de ${currentUser.username}`);
@@ -4491,23 +4585,6 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
                 currentLanguage = this.value;
                 alert(`Langue changée en ${this.value === 'fr' ? 'Français' : 'English'}. Pour la démo, seul le français est pleinement implémenté.`);
             });
-            
-            // Lien pour modifier le mot de passe (page de connexion)
-            document.getElementById('change-password-link').addEventListener('click', function(e) {
-                e.preventDefault();
-                openChangePasswordModal();
-            });
-            
-            // Bouton pour modifier le mot de passe (dans l'application)
-            document.getElementById('change-password-app-btn').addEventListener('click', function() {
-                openChangePasswordModal();
-            });
-            
-            // Sauvegarder le mot de passe modifié
-            document.getElementById('save-password-btn').addEventListener('click', changePassword);
-            
-            // Réinitialiser le mot de passe d'un utilisateur (admin)
-            document.getElementById('reset-password-btn').addEventListener('click', resetUserPasswordAdmin);
             
             // Formulaire de saisie
             document.getElementById('type-piece').addEventListener('change', function() {
@@ -4713,6 +4790,23 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
                 alert('Export des logs généré!');
             });
             
+            // Modification mot de passe
+            document.getElementById('save-password-btn').addEventListener('click', changePassword);
+            document.getElementById('confirm-reset-password-btn').addEventListener('click', resetPassword);
+            
+            // Suivi de la force du mot de passe
+            document.getElementById('new-password').addEventListener('input', function() {
+                updatePasswordStrength(this.value, 'new-password-strength');
+            });
+            
+            document.getElementById('reset-new-password').addEventListener('input', function() {
+                updatePasswordStrength(this.value, 'reset-password-strength');
+            });
+            
+            document.getElementById('modal-password').addEventListener('input', function() {
+                updatePasswordStrength(this.value, 'password-strength');
+            });
+            
             // Pagination - changement du nombre de lignes par page
             document.getElementById('rows-per-page-select').addEventListener('change', function() {
                 rowsPerPage = parseInt(this.value);
@@ -4731,26 +4825,29 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             document.getElementById('filter-date-from').valueAsDate = firstDay;
             document.getElementById('filter-date-to').valueAsDate = today;
             
-           // Logs
-document.getElementById('log-date-from').valueAsDate = firstDay;
-document.getElementById('log-date-to').valueAsDate = today;
-}   // <-- garde cette accolade, elle ferme setupEventListeners
+            // Logs
+            document.getElementById('log-date-from').valueAsDate = firstDay;
+            document.getElementById('log-date-to').valueAsDate = today;
+        }
 
-// ============================================
-// INITIALISATION
-// ============================================
-
-document.addEventListener('DOMContentLoaded', async function() {
-    await loadUsersFromSupabase();
-    rejetsData = JSON.parse(localStorage.getItem('rejetsData')) || [];
-    activityLogs = JSON.parse(localStorage.getItem('activityLogs')) || [];
-    setupEventListeners();
-    if (rejetsData.length === 0) {
-        saveAllData();
-    }
-    document.getElementById('loginEmail').value = 'sramadan@ecobank.com';
-});
-
+        // ============================================
+        // INITIALISATION
+        // ============================================
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            setupEventListeners();
+            
+            // Charger les utilisateurs depuis Supabase
+            await loadUsersFromSupabase();
+            
+            // Initialiser les données si vides
+            if (rejetsData.length === 0) {
+                saveAllData();
+            }
+            
+            // Remplir l'email par défaut pour faciliter les tests
+            document.getElementById('loginEmail').value = 'sramadan@ecobank.com';
+        });
     </script>
 </body>
 </html>
