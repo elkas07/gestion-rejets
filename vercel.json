@@ -1,14 +1,14 @@
-
 {
   "version": 2,
   "cleanUrls": true,
-  "framework": null,
   "routes": [
     {
       "src": "/(.*)",
       "dest": "/index.html",
       "headers": {
-        "cache-control": "no-cache, no-store, must-revalidate"
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0"
       }
     }
   ]

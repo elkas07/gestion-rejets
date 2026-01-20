@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { User } from './types';
 import { supabaseService } from './services/supabase';
@@ -58,96 +57,93 @@ const App: React.FC = () => {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-tr from-slate-950 via-blue-900 to-slate-900 p-6">
-        {/* Badge Flottant pour confirmer le déploiement */}
-        <div className="mb-8 animate-bounce">
-            <div className="bg-gradient-to-r from-cyan-400 to-blue-500 text-white px-8 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.3em] shadow-[0_10px_40px_rgba(6,182,212,0.5)] border-2 border-white/20">
-               <i className="fas fa-gem mr-2"></i> VERSION PLATINUM 3.6
-            </div>
-        </div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0f1d] p-6 relative overflow-hidden">
+        {/* Cercles de lumière en arrière-plan */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-600/10 rounded-full blur-[120px]"></div>
 
-        <div className="bg-white rounded-[3rem] shadow-[0_30px_100px_rgba(0,0,0,0.5)] w-full max-w-md p-12 border border-white/20 relative overflow-hidden group">
-          {/* Décoration de fond */}
-          <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-blue-50 rounded-full blur-3xl opacity-50 group-hover:opacity-80 transition-opacity"></div>
+        <div className="w-full max-w-md relative z-10">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-3xl text-white mb-6 shadow-[0_20px_50px_rgba(37,99,235,0.3)] transform -rotate-3 hover:rotate-0 transition-all duration-500">
+              <i className="fas fa-university text-3xl"></i>
+            </div>
+            <h1 className="text-4xl font-black text-white uppercase tracking-tighter mb-1">EcoBank <span className="text-blue-500">SGR</span></h1>
+            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.4em]">Système de traçabilité PLATINUM</p>
+          </div>
+
+          <div className="bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] border border-white/10 p-10 shadow-2xl">
+            <form onSubmit={handleLogin} className="space-y-6">
+              {error && (
+                <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold rounded-2xl flex items-center gap-3 animate-pulse">
+                  <i className="fas fa-exclamation-triangle"></i>
+                  {error}
+                </div>
+              )}
+              
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Identifiant Pro</label>
+                <div className="relative">
+                  <i className="fas fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                  <input 
+                    type="email" 
+                    value={loginData.email}
+                    onChange={e => setLoginData({...loginData, email: e.target.value})}
+                    className="w-full bg-slate-950/50 border border-white/5 rounded-2xl pl-12 pr-6 py-4 focus:border-blue-500 outline-none transition-all font-bold text-white placeholder:text-slate-700" 
+                    placeholder="nom@ecobank.com"
+                    required 
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Clé d'accès</label>
+                <div className="relative">
+                  <i className="fas fa-lock absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                  <input 
+                    type="password" 
+                    value={loginData.password}
+                    onChange={e => setLoginData({...loginData, password: e.target.value})}
+                    className="w-full bg-slate-950/50 border border-white/5 rounded-2xl pl-12 pr-6 py-4 focus:border-blue-500 outline-none transition-all font-bold text-white placeholder:text-slate-700" 
+                    placeholder="••••••••"
+                    required 
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Rôle Session</label>
+                <div className="relative">
+                  <i className="fas fa-user-shield absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none"></i>
+                  <select 
+                    value={loginData.role}
+                    onChange={e => setLoginData({...loginData, role: e.target.value as any})}
+                    className="w-full bg-slate-950/50 border border-white/5 rounded-2xl pl-12 pr-6 py-4 focus:border-blue-500 outline-none transition-all font-black text-white appearance-none cursor-pointer"
+                  >
+                    <option value="agent" className="bg-slate-900">AGENT OPS</option>
+                    <option value="superviseur" className="bg-slate-900">SUPERVISEUR</option>
+                    <option value="gestionnaire" className="bg-slate-900">GESTIONNAIRE</option>
+                  </select>
+                </div>
+              </div>
+
+              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl shadow-lg shadow-blue-600/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 text-xs uppercase tracking-[0.2em] mt-4">
+                <i className="fas fa-sign-in-alt"></i> Connexion Sécurisée
+              </button>
+            </form>
+          </div>
           
-          <div className="relative z-10 text-center mb-10">
-            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-600 to-blue-800 rounded-[2rem] text-white mb-6 shadow-xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
-              <i className="fas fa-university text-4xl"></i>
-            </div>
-            <h1 className="text-5xl font-black text-slate-950 uppercase tracking-tighter leading-none mb-3">EcoBank</h1>
-            <p className="text-blue-600 text-[10px] font-black uppercase tracking-[0.4em]">Gestion des Rejets OV/RC</p>
-          </div>
-
-          <form onSubmit={handleLogin} className="relative z-10 space-y-6">
-            {error && (
-              <div className="p-4 bg-red-50 border border-red-100 text-red-700 text-xs font-bold rounded-2xl flex items-center gap-3 animate-shake">
-                <i className="fas fa-exclamation-circle text-lg"></i>
-                {error}
-              </div>
-            )}
-            
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Email Professionnel</label>
-              <input 
-                type="email" 
-                value={loginData.email}
-                onChange={e => setLoginData({...loginData, email: e.target.value})}
-                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 focus:border-blue-600 focus:bg-white outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300" 
-                placeholder="nom@ecobank.com"
-                required 
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Mot de passe</label>
-              <input 
-                type="password" 
-                value={loginData.password}
-                onChange={e => setLoginData({...loginData, password: e.target.value})}
-                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 focus:border-blue-600 focus:bg-white outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300" 
-                placeholder="••••••••"
-                required 
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase ml-2">Rôle d'accès</label>
-              <div className="relative">
-                <select 
-                  value={loginData.role}
-                  onChange={e => setLoginData({...loginData, role: e.target.value as any})}
-                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 focus:border-blue-600 outline-none transition-all font-black text-slate-800 appearance-none cursor-pointer"
-                >
-                  <option value="agent">AGENT OPS</option>
-                  <option value="superviseur">SUPERVISEUR</option>
-                  <option value="gestionnaire">GESTIONNAIRE</option>
-                </select>
-                <i className="fas fa-chevron-down absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none"></i>
-              </div>
-            </div>
-
-            <button type="submit" className="w-full bg-slate-950 hover:bg-blue-600 text-white font-black py-5 rounded-2xl shadow-2xl shadow-slate-950/20 transition-all hover:scale-[1.03] active:scale-95 flex items-center justify-center gap-3 text-sm uppercase tracking-[0.2em] mt-4">
-              <i className="fas fa-lock"></i> Accéder au SGR
-            </button>
-          </form>
-
-          <div className="relative z-10 mt-12 pt-8 border-t border-slate-100 text-center">
-            <button 
-              onClick={() => { setIsPublicPwdChange(true); setShowPwdModal(true); }}
-              className="text-slate-400 text-[10px] font-black hover:text-blue-600 transition-colors uppercase tracking-widest"
-            >
-              Besoin d'aide pour votre accès ?
-            </button>
+          <div className="mt-8 text-center">
+             <div className="inline-block px-4 py-1.5 bg-white/5 rounded-full border border-white/5">
+                <p className="text-white/30 text-[9px] font-black uppercase tracking-[0.3em]">Build v3.6.0-PLATINUM • Stable</p>
+             </div>
           </div>
         </div>
-        
-        <p className="mt-8 text-white/30 text-[9px] font-bold uppercase tracking-[0.5em]">EcoBank Internal Application Security</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-slate-50">
+    <div className="min-h-screen flex flex-col md:flex-row bg-slate-50 text-slate-900">
       <aside className="w-full md:w-64 bg-slate-950 text-white flex-shrink-0 flex flex-col h-screen overflow-y-auto border-r border-white/5">
         <div className="p-8 flex items-center gap-3 border-b border-white/10">
           <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
