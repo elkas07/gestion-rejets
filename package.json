@@ -1,0 +1,26 @@
+
+{
+  "name": "ecobank-sgr",
+  "version": "3.3.0",
+  "description": "Système de Gestion des Rejets EcoBank (OV/R/C)",
+  "main": "index.tsx",
+  "scripts": {
+    "start": "serve .",
+    "build": "echo 'Building...'"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.7",
+    "jspdf": "^2.5.1",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "recharts": "^3.6.0"
+  },
+  "keywords": [
+    "banking",
+    "management",
+    "rejection-tracking",
+    "ecobank"
+  ],
+  "author": "SGR Team",
+  "license": "MIT"
+}

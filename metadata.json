@@ -1,5 +1,6 @@
-﻿{
+﻿
+{
   "name": "EcoBank Rejection Management System",
-  "description": "Système de traçabilité des rejets OV/R/C EcoBank.",
-  "requestFramePermissions": ["camera"]
+  "description": "A comprehensive system for tracking and managing banking operation rejections (OV, R/C, PC) with workflow validation, advanced reporting, and user administration.",
+  "requestFramePermissions": []
 }

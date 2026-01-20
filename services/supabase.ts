@@ -1,4 +1,5 @@
-﻿import { createClient } from '@supabase/supabase-js';
+﻿
+import { createClient } from '@supabase/supabase-js';
 import { User, Rejet, ActivityLog } from '../types';
 
 const supabaseUrl = 'https://qldfjdmpzvyhgsmepynp.supabase.co';
@@ -11,23 +12,89 @@ export const supabaseService = {
     try {
       const { data, error } = await supabase.from('users').select('*');
       if (error) throw error;
-      return (data?.map(u => ({ ...u, permissions: Array.isArray(u.permissions) ? u.permissions : [] })) as User[]) || [];
-    } catch (e) { return []; }
+      return (data?.map(u => ({
+        ...u,
+        permissions: Array.isArray(u.permissions) ? u.permissions : []
+      })) as User[]) || [];
+    } catch (e) {
+      console.error("Erreur getUsers:", e);
+      return [];
+    }
   },
+
+  addUser: async (userData: any) => {
+    const { data, error } = await supabase.from('users').insert([userData]).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  updateUser: async (id: string, updates: any) => {
+    const { error } = await supabase.from('users').update(updates).eq('id', id);
+    if (error) throw error;
+  },
+
   getRejets: async (): Promise<Rejet[]> => {
     try {
       const { data, error } = await supabase.from('rejets').select('*').order('created_at', { ascending: false });
       if (error) throw error;
-      return (data?.map(r => ({ ...r, montant: Number(r.montant) || 0, historique: Array.isArray(r.historique) ? r.historique : [] })) as Rejet[]) || [];
-    } catch (e) { return []; }
+      return (data?.map(r => ({
+        ...r,
+        montant: Number(r.montant) || 0,
+        historique: Array.isArray(r.historique) ? r.historique : 
+                   (typeof r.historique === 'string' ? JSON.parse(r.historique) : [])
+      })) as Rejet[]) || [];
+    } catch (e) {
+      console.error("Erreur getRejets:", e);
+      return [];
+    }
   },
+
   saveRejet: async (rejet: any) => {
     const { id, ...dataToSave } = rejet;
-    const payload = { ...dataToSave, montant: Number(dataToSave.montant), updated_at: new Date().toISOString() };
+    const payload = {
+      ...dataToSave,
+      montant: Number(dataToSave.montant),
+      type: dataToSave.type || 'OV',
+      updated_at: new Date().toISOString()
+    };
+    
     const { error } = await supabase.from('rejets').upsert(payload, { onConflict: 'reference' });
+    if (error) {
+      console.error("Erreur lors de la sauvegarde :", error);
+      throw error;
+    }
+  },
+
+  deleteRejet: async (id: number) => {
+    const { error } = await supabase.from('rejets').delete().eq('id', id);
     if (error) throw error;
   },
-  addLog: async (log: any) => {
-    try { await supabase.from('journal_activite').insert([{ niveau: log.level, user_id: log.user, action: log.action, details: log.details }]); } catch (e) {}
+
+  getLogs: async (): Promise<ActivityLog[]> => {
+    try {
+      const { data, error } = await supabase.from('journal_activite').select('*').order('created_at', { ascending: false }).limit(50);
+      if (error) return [];
+      return (data?.map(l => ({ 
+        id: l.id,
+        timestamp: l.created_at, 
+        user: l.user_id,
+        action: l.action,
+        level: l.niveau || 'info',
+        details: l.details
+      })) as ActivityLog[]) || [];
+    } catch (e) {
+      return [];
+    }
+  },
+
+  addLog: async (log: { level: string, user: string, action: string, details: string }) => {
+    try {
+      await supabase.from('journal_activite').insert([{
+        niveau: log.level,
+        user_id: log.user,
+        action: log.action,
+        details: log.details
+      }]);
+    } catch (e) {}
   }
 };
