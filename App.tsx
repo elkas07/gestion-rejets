@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { User } from './types';
 import { supabaseService } from './services/supabase';
@@ -35,7 +36,7 @@ const App: React.FC = () => {
           level: 'info',
           user: user.username,
           action: 'Connexion',
-          details: `Connecté sur v3.6 Platinum`
+          details: `Session Platinum v3.6 ouverte`
         });
         
         if (user.force_password_change) {
@@ -45,7 +46,7 @@ const App: React.FC = () => {
         setError("Identifiants ou rôle incorrects.");
       }
     } catch (err) {
-      setError("Erreur de connexion au service.");
+      setError("Erreur de connexion au service Supabase.");
     }
   };
 
@@ -57,85 +58,80 @@ const App: React.FC = () => {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0f1d] p-6 relative overflow-hidden">
-        {/* Cercles de lumière en arrière-plan */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-600/10 rounded-full blur-[120px]"></div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#05070a] p-6 relative overflow-hidden">
+        {/* Glow Effects - Confirmation visuelle de la nouvelle version */}
+        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-blue-900/20 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-cyan-900/10 rounded-full blur-[120px]"></div>
 
         <div className="w-full max-w-md relative z-10">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-3xl text-white mb-6 shadow-[0_20px_50px_rgba(37,99,235,0.3)] transform -rotate-3 hover:rotate-0 transition-all duration-500">
-              <i className="fas fa-university text-3xl"></i>
-            </div>
-            <h1 className="text-4xl font-black text-white uppercase tracking-tighter mb-1">EcoBank <span className="text-blue-500">SGR</span></h1>
-            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.4em]">Système de traçabilité PLATINUM</p>
+          <div className="mb-8 text-center animate-pulse">
+              <span className="bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.3em]">
+                <i className="fas fa-shield-alt mr-2"></i> Système v3.6 Platinum Déployé
+              </span>
           </div>
 
-          <div className="bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] border border-white/10 p-10 shadow-2xl">
+          <div className="bg-slate-900/40 backdrop-blur-2xl rounded-[3rem] border border-white/5 p-12 shadow-[0_50px_100px_rgba(0,0,0,0.8)]">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl text-white mb-6 shadow-2xl transform rotate-3">
+                <i className="fas fa-university text-3xl"></i>
+              </div>
+              <h1 className="text-4xl font-black text-white uppercase tracking-tighter mb-1">EcoBank</h1>
+              <p className="text-blue-500 text-[10px] font-black uppercase tracking-[0.4em]">Gestion des Rejets v3.6</p>
+            </div>
+
             <form onSubmit={handleLogin} className="space-y-6">
               {error && (
-                <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold rounded-2xl flex items-center gap-3 animate-pulse">
-                  <i className="fas fa-exclamation-triangle"></i>
+                <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-[11px] font-bold rounded-2xl flex items-center gap-3">
+                  <i className="fas fa-exclamation-circle text-lg"></i>
                   {error}
                 </div>
               )}
               
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Identifiant Pro</label>
-                <div className="relative">
-                  <i className="fas fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                  <input 
-                    type="email" 
-                    value={loginData.email}
-                    onChange={e => setLoginData({...loginData, email: e.target.value})}
-                    className="w-full bg-slate-950/50 border border-white/5 rounded-2xl pl-12 pr-6 py-4 focus:border-blue-500 outline-none transition-all font-bold text-white placeholder:text-slate-700" 
-                    placeholder="nom@ecobank.com"
-                    required 
-                  />
-                </div>
+                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Email Professionnel</label>
+                <input 
+                  type="email" 
+                  value={loginData.email}
+                  onChange={e => setLoginData({...loginData, email: e.target.value})}
+                  className="w-full bg-slate-950/50 border border-white/5 rounded-2xl px-6 py-4 focus:border-blue-600 outline-none transition-all font-bold text-white placeholder:text-slate-700" 
+                  placeholder="nom@ecobank.com"
+                  required 
+                />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Clé d'accès</label>
-                <div className="relative">
-                  <i className="fas fa-lock absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                  <input 
-                    type="password" 
-                    value={loginData.password}
-                    onChange={e => setLoginData({...loginData, password: e.target.value})}
-                    className="w-full bg-slate-950/50 border border-white/5 rounded-2xl pl-12 pr-6 py-4 focus:border-blue-500 outline-none transition-all font-bold text-white placeholder:text-slate-700" 
-                    placeholder="••••••••"
-                    required 
-                  />
-                </div>
+                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Mot de passe</label>
+                <input 
+                  type="password" 
+                  value={loginData.password}
+                  onChange={e => setLoginData({...loginData, password: e.target.value})}
+                  className="w-full bg-slate-950/50 border border-white/5 rounded-2xl px-6 py-4 focus:border-blue-600 outline-none transition-all font-bold text-white placeholder:text-slate-700" 
+                  placeholder="••••••••"
+                  required 
+                />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Rôle Session</label>
-                <div className="relative">
-                  <i className="fas fa-user-shield absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none"></i>
-                  <select 
-                    value={loginData.role}
-                    onChange={e => setLoginData({...loginData, role: e.target.value as any})}
-                    className="w-full bg-slate-950/50 border border-white/5 rounded-2xl pl-12 pr-6 py-4 focus:border-blue-500 outline-none transition-all font-black text-white appearance-none cursor-pointer"
-                  >
-                    <option value="agent" className="bg-slate-900">AGENT OPS</option>
-                    <option value="superviseur" className="bg-slate-900">SUPERVISEUR</option>
-                    <option value="gestionnaire" className="bg-slate-900">GESTIONNAIRE</option>
-                  </select>
-                </div>
+                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Rôle d'accès</label>
+                <select 
+                  value={loginData.role}
+                  onChange={e => setLoginData({...loginData, role: e.target.value as any})}
+                  className="w-full bg-slate-950/50 border border-white/5 rounded-2xl px-6 py-4 focus:border-blue-600 outline-none transition-all font-black text-white appearance-none cursor-pointer"
+                >
+                  <option value="agent" className="bg-slate-900">AGENT OPS</option>
+                  <option value="superviseur" className="bg-slate-900">SUPERVISEUR</option>
+                  <option value="gestionnaire" className="bg-slate-900">GESTIONNAIRE</option>
+                </select>
               </div>
 
-              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl shadow-lg shadow-blue-600/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 text-xs uppercase tracking-[0.2em] mt-4">
-                <i className="fas fa-sign-in-alt"></i> Connexion Sécurisée
+              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl shadow-2xl shadow-blue-600/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 text-xs uppercase tracking-[0.2em] mt-4">
+                <i className="fas fa-lock"></i> Se Connecter
               </button>
             </form>
           </div>
           
-          <div className="mt-8 text-center">
-             <div className="inline-block px-4 py-1.5 bg-white/5 rounded-full border border-white/5">
-                <p className="text-white/30 text-[9px] font-black uppercase tracking-[0.3em]">Build v3.6.0-PLATINUM • Stable</p>
-             </div>
+          <div className="mt-12 text-center">
+            <p className="text-white/20 text-[9px] font-black uppercase tracking-[0.5em]">EcoBank Internal Application • Platinum v3.6.0</p>
           </div>
         </div>
       </div>
@@ -143,7 +139,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-slate-50 text-slate-900">
+    <div className="min-h-screen flex flex-col md:flex-row bg-slate-50">
       <aside className="w-full md:w-64 bg-slate-950 text-white flex-shrink-0 flex flex-col h-screen overflow-y-auto border-r border-white/5">
         <div className="p-8 flex items-center gap-3 border-b border-white/10">
           <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
