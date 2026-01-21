@@ -1,7 +1,7 @@
 {
   "name": "ecobank-sgr",
-  "version": "3.6.3",
-  "description": "Système de Gestion des Rejets EcoBank (OV/RC) - v3.6.3 DIAMOND",
+  "version": "4.0.0",
+  "description": "Système de Gestion des Rejets EcoBank (OV/RC) - v4.0.0 GOLD",
   "main": "index.tsx",
   "scripts": {
     "start": "serve .",

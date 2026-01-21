@@ -1,6 +1,5 @@
-﻿
-{
-  "name": "EcoBank Rejection Management System",
-  "description": "Système professionnel v3.6 Platinum pour le suivi et la gestion des rejets bancaires (OV, RC) avec workflow de validation et rapports avancés.",
+﻿{
+  "name": "EcoBank SGR GOLD v4.0.0",
+  "description": "Système professionnel de suivi et de gestion des rejets bancaires - ÉDITION GOLD.",
   "requestFramePermissions": []
 }
