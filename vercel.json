@@ -6,9 +6,11 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate, proxy-revalidate" },
         { "key": "Pragma", "value": "no-cache" },
-        { "key": "Expires", "value": "0" }
+        { "key": "Expires", "value": "0" },
+        { "key": "X-SGR-Build", "value": "5.0.0-EMERALD-FINAL" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
       ]
     }
   ],

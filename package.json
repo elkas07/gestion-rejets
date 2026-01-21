@@ -1,11 +1,11 @@
 {
   "name": "ecobank-sgr",
-  "version": "4.0.0",
-  "description": "Système de Gestion des Rejets EcoBank (OV/RC) - v4.0.0 GOLD",
+  "version": "5.0.0",
+  "description": "Système de Gestion des Rejets EcoBank (OV/RC) - v5.0.0 EMERALD",
   "main": "index.tsx",
   "scripts": {
     "start": "serve .",
-    "build": "echo 'Building...'"
+    "build": "echo 'Build Version 5.0.0 Emerald...'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.7",
