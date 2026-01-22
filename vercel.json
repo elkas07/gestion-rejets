@@ -1,21 +1,19 @@
 {
   "version": 2,
   "cleanUrls": true,
-  "framework": null,
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate, proxy-revalidate" },
-        { "key": "Pragma", "value": "no-cache" },
-        { "key": "Expires", "value": "0" },
-        { "key": "X-SGR-Build", "value": "5.0.0-EMERALD-FINAL" },
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
         { "key": "Access-Control-Allow-Origin", "value": "*" }
       ]
     }
   ],
-  "routes": [
-    { "src": "/index.tsx", "dest": "/index.tsx" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    {
+      "source": "/((?!.*\\.(?:js|jsx|ts|tsx|css|json|png|jpg|jpeg|svg|gif|webp|ico|woff|woff2|ttf|otf|mp4|webm|wav|mp3|m4a|aac|oga)$).*)",
+      "destination": "/index.html"
+    }
   ]
 }

@@ -1,11 +1,11 @@
 {
   "name": "ecobank-sgr",
-  "version": "5.0.0",
-  "description": "Système de Gestion des Rejets EcoBank (OV/RC) - v5.0.0 EMERALD",
+  "version": "3.6.0",
+  "description": "Système de Gestion des Rejets EcoBank - Version Déploiement",
   "main": "index.tsx",
   "scripts": {
     "start": "serve .",
-    "build": "echo 'Build Version 5.0.0 Emerald...'"
+    "build": "echo 'Static deployment: No build required.'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.7",
@@ -14,12 +14,5 @@
     "react-dom": "^19.2.3",
     "recharts": "^3.6.0"
   },
-  "keywords": [
-    "banking",
-    "management",
-    "rejection-tracking",
-    "ecobank"
-  ],
-  "author": "SGR Team",
   "license": "MIT"
 }

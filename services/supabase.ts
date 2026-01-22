@@ -1,5 +1,4 @@
-﻿
-import { createClient } from '@supabase/supabase-js';
+﻿import { createClient } from '@supabase/supabase-js';
 import { User, Rejet, ActivityLog } from '../types';
 
 const supabaseUrl = 'https://qldfjdmpzvyhgsmepynp.supabase.co';
@@ -50,18 +49,30 @@ export const supabaseService = {
   },
 
   saveRejet: async (rejet: any) => {
-    const { id, ...dataToSave } = rejet;
+    const { id, updated_at, type_autre, created_at, ...cleanData } = rejet;
+    
     const payload = {
-      ...dataToSave,
-      montant: Number(dataToSave.montant),
-      type: dataToSave.type || 'OV',
+      ...cleanData,
+      montant: Number(cleanData.montant),
+      historique: Array.isArray(cleanData.historique) ? cleanData.historique : [],
       updated_at: new Date().toISOString()
     };
     
-    const { error } = await supabase.from('rejets').upsert(payload, { onConflict: 'reference' });
-    if (error) {
-      console.error("Erreur lors de la sauvegarde :", error);
-      throw error;
+    if (id) {
+      const { data, error } = await supabase
+        .from('rejets')
+        .update(payload)
+        .eq('id', id)
+        .select();
+      if (error) throw error;
+      return data;
+    } else {
+      const { data, error } = await supabase
+        .from('rejets')
+        .insert(payload)
+        .select();
+      if (error) throw error;
+      return data;
     }
   },
 
